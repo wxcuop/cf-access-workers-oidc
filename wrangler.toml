@@ -1,0 +1,20 @@
+name = "cf-workers-oidc"
+main = "dist/main.mjs"
+compatibility_date = "2024-11-01"
+
+#zone_id = "your-zone-id"
+#routes = ["oidc.example.com/*"]
+
+[durable_objects]
+bindings = [
+  { name = "DO_OIDC", class_name = "OpenIDConnectDurableObject" },
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["OpenIDConnectDurableObject"]
+
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = ["src"]

@@ -1,0 +1,65 @@
+# Cloudflare Workers OIDC Provider Configuration Example
+# Copy this file to config.yml and update with your values
+
+# Cloudflare Account Configuration
+cf_account_id: your-cloudflare-account-id # Replace with your actual Cloudflare Account ID
+cf_access_team: your-team-name # Optional: Your Cloudflare for Teams name (required for Access integration)
+cf_access_aud: your-access-application-aud # Optional: Access Application AUD from Cloudflare Access
+
+# Token Lifetime Configuration (in seconds)
+jwt_ttl: 600 # JWT token TTL (10 minutes) - Used for internal JWT tokens
+access_token_ttl: 1800 # Access token TTL (30 minutes) - OIDC access tokens
+refresh_token_ttl: 604800 # Refresh token TTL (7 days) - OIDC refresh tokens
+
+# OIDC Client Applications
+clients:
+  # Example web application
+  - name: "Your Web Application"
+    client_id: b78f6b19-50ca-4bab-85bf-93e6c51ff8fb # Generate unique UUID from https://uuid.rocks/plain
+    client_secret_key: SECRET_CLIENT_APP # Set with: wrangler secret put SECRET_CLIENT_APP
+    redirect_uris:
+      - https://your-app.example.com/auth/callback
+      - https://your-app.example.com/auth/silent-callback
+    cors_origins:
+      - https://your-app.example.com
+    # Optional: Restrict access to specific groups
+    allowed_groups:
+      - users
+      - admins
+  
+  # Example HashiCorp Vault integration
+  - name: "HashiCorp Vault"
+    client_id: 96c02d1c-af05-482c-a9c9-2eec5ee30cf1 # Generate unique UUID
+    client_secret_key: SECRET_VAULT # Set with: wrangler secret put SECRET_VAULT
+    redirect_uris:
+      - https://vault.example.com/ui/vault/auth/oidc/oidc/callback
+      - http://localhost:8250/oidc/callback # For local Vault development
+      - http://127.0.0.1:8250/oidc/callback # Alternative local address
+    cors_origins:
+      - https://vault.example.com
+    allowed_groups:
+      - vault-users
+      - admins
+
+  # Example Next.js application with multiple environments
+  - name: "Next.js Application"
+    client_id: a1b2c3d4-e5f6-7890-abcd-ef1234567890 # Generate unique UUID
+    client_secret_key: SECRET_NEXTJS_APP # Set with: wrangler secret put SECRET_NEXTJS_APP
+    redirect_uris:
+      - https://my-app.vercel.app/api/auth/callback/oidc
+      - https://staging.my-app.com/api/auth/callback/oidc
+      - http://localhost:3000/api/auth/callback/oidc # For local development
+    cors_origins:
+      - https://my-app.vercel.app
+      - https://staging.my-app.com
+      - http://localhost:3000
+    allowed_groups:
+      - users
+
+# Configuration Notes:
+# 1. Generate unique UUIDs for client_id from https://uuid.rocks/plain
+# 2. Set client secrets with: wrangler secret put SECRET_NAME
+# 3. Ensure redirect_uris match your application's callback URLs exactly
+# 4. CORS origins should include all domains that will call your OIDC provider
+# 5. allowed_groups are optional - if omitted, all authenticated users are allowed
+# 6. For Cloudflare Access integration, set cf_access_team and cf_access_aud
