@@ -27,6 +27,8 @@ export const getCorsHeaders = (origin, headers = []) => {
     return {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Headers': headers.join(','),
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Max-Age': '86400',
     }
   } else {
     return {}
@@ -37,7 +39,7 @@ export const getAllowedOrigin = (req, clientId) => {
   const reqOrigin = req.headers.get('origin')
   let allowOrigin
 
-  if ((clientId = '*')) {
+  if (clientId === '*') {
     allowOrigin = config.clients.some(client =>
       client.cors_origins?.includes(reqOrigin),
     )
