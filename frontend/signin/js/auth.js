@@ -301,7 +301,7 @@ const AuthApp = {
             this.setLoading(true);
             
             const response = await this.apiCall('POST', this.config.endpoints.register, {
-                fullName,
+                name: fullName,  // Backend expects 'name', not 'fullName'
                 email,
                 password
             });
