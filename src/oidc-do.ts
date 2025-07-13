@@ -48,7 +48,7 @@ export class OpenIDConnectDurableObject {
   private refreshTokenTtl!: number
 
   // Data stores - managed by services but initialized here
-  private codes!: Map<string, ExchangeCode>
+  // Note: codes Map removed - now handled by SQLite in OIDCCoreService
   private jwks!: Map<string, Jwk>
   private groups!: Map<string, Group>
   private users!: Map<string, User>
@@ -85,7 +85,7 @@ export class OpenIDConnectDurableObject {
     this.refreshTokenTtl = config.refresh_token_ttl || 86400 * 7 // 7 days default
 
     // Initialize data stores
-    this.codes = new Map()
+    // Note: codes Map removed - now handled by SQLite in OIDCCoreService
     this.sessions = new Map()
     this.passwordResetTokens = new Map()
     this.rateLimits = new Map()
@@ -114,8 +114,7 @@ export class OpenIDConnectDurableObject {
     )
 
     this.oidcService = new OIDCCoreService(
-      this.codes,
-      this.jwks,
+      this.storage.sql,
       this.jwtService
     )
 

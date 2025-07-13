@@ -101,11 +101,15 @@ This PRD defines the requirements for a comprehensive admin management interface
 - **UI Components**: Reusable component library
 - **Routing**: Client-side routing for single-page experience
 
-### TR-2: API Integration
+### TR-2: API Integration & Data Architecture
 - **Admin Endpoints**: Comprehensive admin API coverage
 - **Real-time Updates**: WebSocket or SSE for live updates
 - **Batch Operations**: Support for bulk user operations
 - **Error Handling**: Robust error handling and recovery
+- **Data Sources**: 
+  - SQLite Durable Objects for OIDC tokens and sessions
+  - D1 Database for user profiles, groups, and analytics
+  - R2 Storage for backups and file assets
 
 ### TR-3: Security Implementation
 - **Admin Authentication**: Secure admin login with MFA
@@ -118,6 +122,153 @@ This PRD defines the requirements for a comprehensive admin management interface
 - **Real-time Updates**: < 2 second update latency
 - **Large Datasets**: Handle 10,000+ users efficiently
 - **Responsive Design**: Optimized for desktop and tablet
+
+## D1 Database Integration
+
+### D1-1: Database Schema Design
+```sql
+-- Users table for profile and authentication data
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_login DATETIME,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
+  email_verified BOOLEAN DEFAULT FALSE
+);
+
+-- Groups table for role-based access control
+CREATE TABLE groups (
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  description TEXT,
+  permissions TEXT, -- JSON array of permissions
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User group memberships
+CREATE TABLE user_groups (
+  user_id TEXT,
+  group_id TEXT,
+  assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  assigned_by TEXT,
+  PRIMARY KEY (user_id, group_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+-- Authentication events for analytics and security
+CREATE TABLE auth_events (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  event_type TEXT NOT NULL, -- 'login', 'logout', 'failed_login', 'password_reset'
+  ip_address TEXT,
+  user_agent TEXT,
+  success BOOLEAN NOT NULL,
+  error_code TEXT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Admin audit log
+CREATE TABLE admin_actions (
+  id TEXT PRIMARY KEY,
+  admin_user_id TEXT NOT NULL,
+  action_type TEXT NOT NULL, -- 'create_user', 'delete_user', 'modify_user', etc.
+  target_user_id TEXT,
+  details TEXT, -- JSON details of the action
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  ip_address TEXT,
+  FOREIGN KEY (admin_user_id) REFERENCES users(id),
+  FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+```
+
+### D1-2: Binding Configuration
+```toml
+# wrangler.toml
+[[d1_databases]]
+binding = "OIDC_DB"
+database_name = "oidc-users"
+database_id = "your-database-id"
+```
+
+### D1-3: API Integration Examples
+```typescript
+interface Env {
+  OIDC_DB: D1Database;
+}
+
+// Get paginated users for admin interface
+export async function getUsers(env: Env, page: number = 1, limit: number = 50, search?: string) {
+  const offset = (page - 1) * limit;
+  let query = `
+    SELECT u.*, GROUP_CONCAT(g.name) as groups
+    FROM users u
+    LEFT JOIN user_groups ug ON u.id = ug.user_id
+    LEFT JOIN groups g ON ug.group_id = g.id
+  `;
+  
+  const params: any[] = [];
+  if (search) {
+    query += ` WHERE u.email LIKE ? OR u.name LIKE ?`;
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  
+  query += ` GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+  
+  const result = await env.OIDC_DB.prepare(query).bind(...params).all();
+  return result.results;
+}
+
+// Dashboard statistics
+export async function getDashboardStats(env: Env) {
+  const stats = await env.OIDC_DB.batch([
+    env.OIDC_DB.prepare("SELECT COUNT(*) as total_users FROM users WHERE status = 'active'"),
+    env.OIDC_DB.prepare(`
+      SELECT COUNT(*) as today_logins 
+      FROM auth_events 
+      WHERE event_type = 'login' AND success = true 
+      AND date(timestamp) = date('now')
+    `),
+    env.OIDC_DB.prepare(`
+      SELECT COUNT(*) as failed_logins_24h 
+      FROM auth_events 
+      WHERE event_type = 'failed_login' 
+      AND timestamp > datetime('now', '-24 hours')
+    `)
+  ]);
+  
+  return {
+    total_users: stats[0].results[0].total_users,
+    today_logins: stats[1].results[0].today_logins,
+    failed_logins_24h: stats[2].results[0].failed_logins_24h
+  };
+}
+```
+
+### D1-4: Local Development Setup
+```bash
+# Create local D1 database for development
+npx wrangler d1 create oidc-users-local
+
+# Apply schema migrations
+npx wrangler d1 migrations apply oidc-users-local --local
+
+# Run Pages dev with D1 binding
+npx wrangler pages dev dist --d1 OIDC_DB=your-local-db-id
+```
+
+### D1-5: Data Migration Strategy
+- **Initial Setup**: Seed database with default admin user and groups
+- **Schema Updates**: Use Wrangler D1 migrations for schema changes
+- **Data Import**: Support CSV import for bulk user creation
+- **Backup Strategy**: Regular exports to R2 for disaster recovery
+````markdown
 
 ## Design Requirements
 

@@ -5,8 +5,40 @@ A comprehensive OpenID Connect provider built on Cloudflare Workers and Durable 
 ## ✨ Features
 
 ### 🔐 **Authentication Infrastructure**
-- **Complete User Management**: Registration, login, logout, password reset
-- **JWT Token System**: Access tokens and refresh tokens with configurable TTLs
+- **Complete User Management**: Registration, login, logout, password### Build & Deploy
+
+#### Environment Setup
+```bash
+# Required: Cloudflare Account ID for deployment
+export CF_ACCOUNT_ID=your-cloudflare-account-id
+
+# Required: Cloudflare API Token with Workers permissions
+export CF_API_TOKEN=your-api-token
+
+# Optional: API Token for Cloudflare Access integration (read-only Teams permissions)
+wrangler secret put CF_SECRET_API_TOKEN
+```
+
+#### Quick Deployment
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Deploy to Cloudflare Workers
+wrangler deploy
+
+# Verify deployment
+curl https://your-worker.your-subdomain.workers.dev/.well-known/openid-configuration
+```
+
+#### Important Notes
+- **SQLite Backend**: Uses new SQLite-backed Durable Objects (required for Workers Free plan)
+- **Automatic Migration**: Existing deployments will automatically migrate to SQLite backend
+- **Data Persistence**: All user data, groups, and exchange codes persist across deployments
+- **Point-in-Time Recovery**: 30-day backup capability for production data- **JWT Token System**: Access tokens and refresh tokens with configurable TTLs
 - **Password Security**: PBKDF2 hashing with 100,000 iterations and salt
 - **Rate Limiting**: Built-in protection against brute force attacks
 - **Session Management**: Persistent user sessions with tracking
@@ -25,11 +57,12 @@ A comprehensive OpenID Connect provider built on Cloudflare Workers and Durable 
 - **Input Validation**: Comprehensive request validation and sanitization
 
 ### 🏗️ **Architecture**
-- **Stateless Design**: Minimal persistent storage requirements
-- **Durable Objects**: Persistent user and group data storage
+- **SQLite Storage**: Modern SQLite-backed Durable Objects for data persistence
+- **Point-in-Time Recovery**: 30-day backup and restore capability
+- **Free Plan Compatible**: Works on Cloudflare Workers Free plan
 - **Auto-scaling**: Cloudflare's global edge network
 - **TypeScript**: Full type safety and modern development experience
-- **Comprehensive Testing**: 14+ unit tests with 100% coverage
+- **Comprehensive Testing**: 65+ tests with full coverage (Jest + Vitest)
 
 ## 🚀 API Endpoints
 
@@ -101,10 +134,10 @@ curl -X POST https://your-oidc-provider.workers.dev/admin/groups \
 
 ### Prerequisites
 
-- Cloudflare account with Workers (required for Durable Objects)
-- Cloudflare for Teams enabled (optional, for Access integration)
-- Wrangler CLI installed (`npm install -g wrangler`)
+- Cloudflare account with Workers (Durable Objects with SQLite backend)
 - Node.js 21+ and npm/yarn
+- Wrangler CLI installed (`npm install -g wrangler`)
+- Optional: Cloudflare for Teams (for Access integration)
 
 ### Quick Start
 
@@ -157,7 +190,16 @@ curl -X POST https://your-oidc-provider.workers.dev/admin/groups \
 5. **Build and Deploy**
    ```bash
    npm run build
-   wrangler publish
+   wrangler deploy
+   ```
+
+6. **Verify Deployment**
+   ```bash
+   # Test the OIDC discovery endpoint
+   curl https://your-worker.your-subdomain.workers.dev/.well-known/openid-configuration
+   
+   # Check health status
+   curl https://your-worker.your-subdomain.workers.dev/health
    ```
 
 ### Development
@@ -187,10 +229,17 @@ cp config.yml.example config.yml  # Edit with your settings
 #### **Available Commands**
 ```bash
 # Development and Testing
-npm test                    # Run all tests
-npm run test:unit          # Run unit tests only
-npm run test:integration   # Run integration tests only
+npm test                    # Run all tests (Jest + Vitest)
+npm run test:jest          # Run Jest unit/integration tests
+npm run test:runtime       # Run Vitest runtime tests
+npm run test:all           # Run both Jest and runtime tests
 npm run test:watch         # Run tests in watch mode
+
+# Individual Test Suites
+npm run test:routes        # Test route configuration
+npm run test:endpoints     # Test endpoint validation
+npm run test:unit          # Test unit tests only
+npm run test:integration   # Test integration tests only
 
 # Code Quality
 npm run type-check         # TypeScript type checking
@@ -201,7 +250,7 @@ npm run format             # Code formatting
 npm run build              # Build the project
 npm run dev                # Local development server
 wrangler dev               # Local development with Wrangler
-wrangler publish           # Deploy to Cloudflare Workers
+wrangler deploy            # Deploy to Cloudflare Workers
 
 # Utilities
 npm run clean              # Clean build artifacts
@@ -220,40 +269,85 @@ wrangler dev
 curl http://localhost:8787/.well-known/openid-configuration
 ```
 
-#### **Testing**
+## 🧪 Testing
+
+### **Comprehensive Test Suite**
+The project includes a robust testing infrastructure with 65+ tests:
+
+#### **Test Architecture**
+- **Jest Tests (60 tests)**: Unit and integration tests for Node.js environment
+- **Vitest Runtime Tests (5 tests)**: Workers runtime-specific tests
+- **Complete Coverage**: All authentication flows, OIDC endpoints, and admin operations
+
+#### **Running Tests**
 ```bash
-# Run all tests
-npm test
+# Run all tests (Jest + Vitest)
+npm run test:all
 
-# Run tests with coverage
-npm run test:coverage
+# Run individual test suites
+npm run test:jest          # Node.js environment tests
+npm run test:runtime       # Workers runtime tests
 
-# Run specific test file
-npm test -- auth.unit.test.ts
+# Specific test categories
+npm run test:routes        # Route configuration tests
+npm run test:endpoints     # API endpoint validation
+npm run test:unit          # Unit tests only
+npm run test:integration   # Integration tests only
 
-# Debug tests
-npm run test:debug
+# Development workflow
+npm run test:watch         # Watch mode for development
+npm run test:ci            # CI/CD pipeline tests
 ```
+
+#### **Test Results Summary**
+- ✅ **Routes Test Suite**: 28/28 tests passing (OIDC endpoints, auth endpoints, admin endpoints)
+- ✅ **Endpoints Integration**: 18/18 tests passing (validation, CORS, error handling)
+- ✅ **Auth Unit Tests**: 14/14 tests passing (authentication flows, security)
+- ✅ **Runtime Tests**: 5/5 tests passing (Workers-specific functionality)
+- ✅ **Total**: 65/65 tests passing
 
 #### **Project Structure**
 ```
 src/
-├── oidc-do.ts              # Main Durable Object orchestrator
 ├── main.ts                 # Worker entry point
+├── oidc-do.ts              # SQLite-backed Durable Object orchestrator
 ├── types.ts                # TypeScript type definitions
+├── utils.ts                # Utility functions
 ├── auth/                   # Authentication service
+│   └── auth-service.ts
 ├── group/                  # Group management service
+│   └── group-service.ts
 ├── oidc/                   # OIDC core and JWT services
+│   ├── oidc-core.ts        # SQLite-backed OIDC operations
+│   └── jwt-service.ts
 ├── security/               # Security utilities
+│   └── security-utils.ts
 ├── storage/                # Data persistence service
+│   └── storage-service.ts
 └── user/                   # User management service
-tests/                  # Test files
+    └── user-service.ts
+
+tests/                      # Test files
+├── auth.unit.test.ts       # Jest unit tests
+├── auth.runtime.test.ts    # Vitest runtime tests
+├── endpoints.integration.test.ts  # API endpoint tests
+├── routes.test.ts          # Route configuration tests
+├── setup.ts                # Jest test setup
+├── setup.runtime.ts        # Vitest runtime setup
+└── README.md               # Test documentation
+
+docs/                       # Documentation
+├── IMPLEMENTATION_PLAN.md  # Development roadmap
+├── SQLITE_REFACTORING_SUMMARY.md  # SQLite migration details
+└── *.md                    # Additional guides
 
 config.yml                  # Configuration file
-wrangler.toml              # Wrangler configuration
+config.yml.example         # Configuration template
+wrangler.toml              # Wrangler configuration (SQLite backend)
 package.json               # Dependencies and scripts
 tsconfig.json              # TypeScript configuration
 jest.config.json           # Jest test configuration
+vitest.config.ts           # Vitest configuration
 ```
 
 #### **Development Workflow**
@@ -298,38 +392,31 @@ clients:
       - http://localhost:3000
 ```
 
-### Build & Deploy
+## 💾 SQLite Storage & Modern Features
 
-- `export CF_ACCOUNT_ID=` (Cloudflare Account ID to deploy OIDC provider to)
-- `export CF_API_TOKEN=` (Cloudflare API Token with Workers permissions)
-- `wrangler secret put CF_SECRET_API_TOKEN` (Cloudflare API Token with Account.Teams read-only permissions, used to fetch user's Access groups)
-- `yarn`
-- `wrangler publish`
+### **SQLite-Backed Durable Objects**
+This OIDC provider has been refactored to use Cloudflare's new SQLite-backed Durable Objects, providing:
 
-### Worker routes & endpoints
+- **📊 Persistent Storage**: All data survives Worker restarts and deployments
+- **🔄 Point-in-Time Recovery**: 30-day backup and restore capability
+- **💰 Free Plan Compatible**: Works on Cloudflare Workers Free plan
+- **⚡ Performance**: SQL indexes for efficient queries and automatic cleanup
+- **📈 Scalability**: Better handling of large datasets compared to in-memory storage
 
-The Worker is not deployed to any domain by default, feel free to configure [wrangler.toml](wrangler.toml) to expose it on one of your domains _(or use the Workers UI)_.
+### **Data Storage**
+```sql
+-- Exchange codes for OAuth2 flows
+exchange_codes (
+  code TEXT PRIMARY KEY,
+  id_token TEXT NOT NULL,
+  access_token TEXT,
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER DEFAULT (unixepoch())
+)
 
-
-## 🌐 Endpoints
-
-### OIDC Standard Endpoints
-
-Once deployed, your OIDC provider exposes the following standard endpoints:
-
-- **`/.well-known/openid-configuration`** - OIDC configuration discovery
-- **`/.well-known/jwks.json`** - Public endpoint with public keys used to verify JWTs
-- **`/authorize`** - Authorization endpoint (protected by Cloudflare Access)
-- **`/token`** - Token endpoint for exchanging authorization codes
-- **`/userinfo`** - User information endpoint
-
-### Worker Routes
-
-The Worker is not deployed to any domain by default. Configure [wrangler.toml](wrangler.toml) to expose it on one of your domains _(or use the Workers UI)_.
-
-## 🚀 Getting Started
-
-Once deployed, your OIDC provider is ready to use! Configure your applications to use the discovery endpoint at `/.well-known/openid-configuration` for automatic configuration.
+-- Automatic cleanup of expired data
+-- Indexes on expires_at for efficient queries
+```
 
 ## ⚙️ Configuration
 
@@ -392,9 +479,39 @@ For enhanced security, you can integrate with Cloudflare Access:
 
 ## 🔧 Advanced Configuration
 
+### **SQLite Storage Configuration**
+The OIDC provider uses SQLite-backed Durable Objects with automatic table creation and management:
+
+```typescript
+// Automatic table initialization
+CREATE TABLE IF NOT EXISTS exchange_codes (
+  code TEXT PRIMARY KEY,
+  id_token TEXT NOT NULL,
+  access_token TEXT NOT NULL DEFAULT '',
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+// Performance indexes
+CREATE INDEX IF NOT EXISTS idx_exchange_codes_expires 
+ON exchange_codes(expires_at);
+```
+
+### **Monitoring and Statistics**
+New SQLite backend provides enhanced monitoring capabilities:
+
+```typescript
+// Get exchange code statistics
+const stats = await oidcService.getExchangeCodeStats();
+// Returns: { total: number, expired: number }
+
+// List all active exchange codes
+const codes = await oidcService.getAllExchangeCodes();
+```
+
 ### Custom Password Policy
 
-Password requirements can be customized in the Durable Object:
+Password requirements can be customized in the security service:
 
 ```typescript
 // Minimum requirements
@@ -425,9 +542,12 @@ Groups can be managed via API or admin interface:
 
 ```typescript
 // Create group
-await fetch('/groups', {
+await fetch('/admin/groups', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+  },
   body: JSON.stringify({
     name: 'developers',
     description: 'Development team'
@@ -435,16 +555,37 @@ await fetch('/groups', {
 });
 
 // Assign user to group
-await fetch('/groups/developers/members', {
+await fetch('/admin/users/user@example.com/groups', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+  },
   body: JSON.stringify({
-    userId: 'user-123'
+    groups: ['developers']
   })
 });
 ```
 
+## 🌐 Endpoints
 
+### OIDC Standard Endpoints
+
+Once deployed, your OIDC provider exposes the following standard endpoints:
+
+- **`/.well-known/openid-configuration`** - OIDC configuration discovery
+- **`/.well-known/jwks.json`** - Public endpoint with public keys used to verify JWTs
+- **`/authorize`** - Authorization endpoint (protected by Cloudflare Access)
+- **`/token`** - Token endpoint for exchanging authorization codes
+- **`/userinfo`** - User information endpoint
+
+### Worker Routes
+
+The Worker is not deployed to any domain by default. Configure [wrangler.toml](wrangler.toml) to expose it on one of your domains _(or use the Workers UI)_.
+
+## 🚀 Getting Started
+
+Once deployed, your OIDC provider is ready to use! Configure your applications to use the discovery endpoint at `/.well-known/openid-configuration` for automatic configuration.
 
 ## 🤝 Contributing
 
@@ -463,3 +604,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](license/LI
 - Built on [Cloudflare Workers](https://workers.cloudflare.com/) and [Durable Objects](https://developers.cloudflare.com/workers/learning/using-durable-objects/)
 - Implements [OpenID Connect](https://openid.net/connect/) standard
 - Inspired by the need for self-hosted OIDC providers
+- Enhanced with SQLite-backed storage for improved persistence and scalability

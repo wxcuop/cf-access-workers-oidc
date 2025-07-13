@@ -84,11 +84,15 @@ This PRD defines the requirements for a secure, user-friendly sign-in page that 
 - **Build**: Cloudflare Pages (static deployment)
 - **Bundling**: Minimal/no build process for simplicity
 
-### TR-2: API Integration
+### TR-2: API Integration & Data Architecture
 - **Endpoint**: `POST /auth/login`
 - **Request format**: JSON with email/password
 - **Response handling**: JWT tokens, error codes
 - **Timeout**: 30-second request timeout
+- **Data Sources**:
+  - D1 Database for user authentication and profile data
+  - Durable Objects for session management and OIDC tokens
+  - Rate limiting data stored in Durable Objects for real-time protection
 
 ### TR-3: Security Implementation
 - **Content Security Policy**: Strict CSP headers
@@ -203,139 +207,266 @@ Content-Type: application/json
 | 500 | server_error | "Something went wrong. Please try again" | Show retry option |
 | Network | network_error | "Connection problem. Check your internet" | Show retry option |
 
-## Security Requirements
+## D1 Database Integration
 
-### SR-1: Input Security
-- **XSS Prevention**: Sanitize all user inputs
-- **CSRF Protection**: Include CSRF tokens
-- **SQL Injection**: Use parameterized queries (backend)
-- **Rate Limiting**: Prevent brute force attacks
+### D1-1: Authentication Data Flow
+```typescript
+interface Env {
+  OIDC_DB: D1Database;
+}
 
-### SR-2: Transport Security
-- **HTTPS Only**: Force HTTPS for all connections
-- **HSTS Headers**: HTTP Strict Transport Security
-- **Secure Cookies**: HttpOnly, Secure, SameSite attributes
-- **Content Security Policy**: Strict CSP implementation
+// User authentication with D1
+export async function authenticateUser(env: Env, email: string, password: string) {
+  // Get user from D1 database
+  const user = await env.OIDC_DB.prepare(`
+    SELECT id, email, password_hash, status, email_verified, last_login
+    FROM users 
+    WHERE email = ? AND status = 'active'
+  `).bind(email).first();
 
-### SR-3: Authentication Security
-- **JWT Handling**: Secure storage and transmission
-- **Token Expiry**: Proper token lifecycle management
-- **Session Management**: Secure session handling
-- **Logout**: Complete session cleanup
+  if (!user) {
+    // Log failed attempt
+    await logAuthEvent(env, null, 'failed_login', false, 'user_not_found');
+    throw new Error('Invalid credentials');
+  }
 
-## Accessibility Requirements
+  // Verify password (using bcrypt or similar)
+  const isValid = await verifyPassword(password, user.password_hash);
+  
+  if (!isValid) {
+    // Log failed attempt
+    await logAuthEvent(env, user.id, 'failed_login', false, 'invalid_password');
+    throw new Error('Invalid credentials');
+  }
 
-### AR-1: WCAG 2.1 Compliance
-- **Level AA**: Meet WCAG 2.1 AA standards
-- **Color contrast**: 4.5:1 minimum ratio
-- **Keyboard navigation**: Full keyboard accessibility
-- **Screen readers**: Compatible with screen readers
+  // Update last login
+  await env.OIDC_DB.prepare(`
+    UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
+  `).bind(user.id).run();
 
-### AR-2: Specific Features
-- **Form labels**: Proper label associations
-- **Error announcement**: Screen reader error announcements
-- **Focus management**: Logical focus order
-- **Alt text**: Descriptive alt text for images
+  // Log successful login
+  await logAuthEvent(env, user.id, 'login', true);
 
-## Browser Support
-- **Chrome**: Latest 2 major versions
-- **Firefox**: Latest 2 major versions
-- **Safari**: Latest 2 major versions
-- **Edge**: Latest 2 major versions
-- **Mobile**: iOS Safari 14+, Chrome Mobile 90+
+  return user;
+}
 
-## Performance Requirements
-- **First Contentful Paint**: < 1.5 seconds
-- **Largest Contentful Paint**: < 2.5 seconds
-- **Cumulative Layout Shift**: < 0.1
-- **First Input Delay**: < 100ms
+// Log authentication events for analytics and security
+async function logAuthEvent(
+  env: Env, 
+  userId: string | null, 
+  eventType: string, 
+  success: boolean, 
+  errorCode?: string
+) {
+  await env.OIDC_DB.prepare(`
+    INSERT INTO auth_events (id, user_id, event_type, success, error_code, timestamp)
+    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `).bind(
+    crypto.randomUUID(),
+    userId,
+    eventType,
+    success,
+    errorCode || null
+  ).run();
+}
+```
 
-## Testing Requirements
+### D1-2: User Registration Integration
+```typescript
+// Create new user account
+export async function createUser(env: Env, email: string, password: string, name: string) {
+  // Check if user already exists
+  const existing = await env.OIDC_DB.prepare(`
+    SELECT id FROM users WHERE email = ?
+  `).bind(email).first();
 
-### Unit Tests
-- Form validation logic
-- API error handling
-- Token storage/retrieval
-- Accessibility helpers
+  if (existing) {
+    throw new Error('User already exists');
+  }
 
-### Integration Tests
-- End-to-end sign-in flow
-- Error scenario testing
-- Cross-browser compatibility
-- Mobile device testing
+  // Hash password
+  const passwordHash = await hashPassword(password);
+  const userId = crypto.randomUUID();
 
-### Security Tests
-- XSS attack prevention
-- CSRF protection validation
-- Rate limiting effectiveness
-- Token security
+  // Insert user into D1
+  await env.OIDC_DB.prepare(`
+    INSERT INTO users (id, email, name, password_hash, created_at, status)
+    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'active')
+  `).bind(userId, email, name, passwordHash).run();
+
+  // Assign default user group
+  const userGroup = await env.OIDC_DB.prepare(`
+    SELECT id FROM groups WHERE name = 'user'
+  `).first();
+
+  if (userGroup) {
+    await env.OIDC_DB.prepare(`
+      INSERT INTO user_groups (user_id, group_id, assigned_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+    `).bind(userId, userGroup.id).run();
+  }
+
+  // Log registration event
+  await logAuthEvent(env, userId, 'registration', true);
+
+  return { id: userId, email, name };
+}
+```
+
+### D1-3: Rate Limiting with D1
+```typescript
+// Check and update rate limiting
+export async function checkRateLimit(env: Env, identifier: string): Promise<boolean> {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - (15 * 60 * 1000)); // 15 minutes
+
+  // Get recent failed attempts
+  const attempts = await env.OIDC_DB.prepare(`
+    SELECT COUNT(*) as count
+    FROM auth_events
+    WHERE (user_id = ? OR ip_address = ?) 
+    AND event_type = 'failed_login'
+    AND timestamp > ?
+  `).bind(identifier, identifier, windowStart.toISOString()).first();
+
+  const maxAttempts = 5;
+  return (attempts?.count || 0) < maxAttempts;
+}
+```
+
+### D1-4: Session Data Integration
+```typescript
+// Get user session data for OIDC flows
+export async function getUserForSession(env: Env, userId: string) {
+  const result = await env.OIDC_DB.prepare(`
+    SELECT 
+      u.id, 
+      u.email, 
+      u.name, 
+      u.email_verified,
+      u.status,
+      GROUP_CONCAT(g.name) as groups,
+      GROUP_CONCAT(g.permissions) as permissions
+    FROM users u
+    LEFT JOIN user_groups ug ON u.id = ug.user_id
+    LEFT JOIN groups g ON ug.group_id = g.id
+    WHERE u.id = ? AND u.status = 'active'
+    GROUP BY u.id
+  `).bind(userId).first();
+
+  if (!result) {
+    throw new Error('User not found');
+  }
+
+  return {
+    ...result,
+    groups: result.groups ? result.groups.split(',') : [],
+    permissions: result.permissions ? result.permissions.split(',') : []
+  };
+}
+```
+
+### D1-5: Wrangler Configuration
+```toml
+# wrangler.toml - Sign-in page configuration
+name = "oidc-signin"
+
+[[d1_databases]]
+binding = "OIDC_DB"
+database_name = "oidc-users"
+database_id = "your-database-id"
+
+[env.production]
+[[env.production.d1_databases]]
+binding = "OIDC_DB"
+database_name = "oidc-users"
+database_id = "your-production-database-id"
+```
+
+### D1-6: Local Development
+```bash
+# Set up local D1 database for sign-in page development
+npx wrangler d1 create oidc-users-local
+
+# Apply migrations
+npx wrangler d1 migrations apply oidc-users-local --local
+
+# Seed with test user
+npx wrangler d1 execute oidc-users-local --local --command="
+INSERT INTO users (id, email, name, password_hash, status, email_verified) 
+VALUES ('test-user-1', 'test@example.com', 'Test User', '$2b$10$hash...', 'active', true)
+"
+
+# Run sign-in page with D1 binding
+npx wrangler pages dev dist --d1 OIDC_DB=your-local-db-id
+```
+
+### D1-7: Security Considerations
+- **Password Hashing**: Use bcrypt with salt rounds ≥ 12
+- **Prepared Statements**: All D1 queries use prepared statements to prevent SQL injection
+- **Data Validation**: Validate all inputs before database operations
+- **Rate Limiting**: Store rate limiting data in D1 for persistent protection
+- **Audit Trail**: All authentication events logged to D1 for security analysis
 
 ## Deployment Requirements
 
 ### Cloudflare Pages Configuration
-- **Custom domain**: Configure custom domain
+- **Custom domain**: Configure custom domain for sign-in
 - **SSL certificate**: Auto-provisioned SSL
-- **Edge locations**: Global edge deployment
-- **Cache settings**: Appropriate cache headers
+- **Environment variables**: API endpoints and configuration
+- **Cache settings**: Minimal caching for dynamic authentication
 
 ### Environment Variables
-- `API_BASE_URL`: Backend API endpoint
+- `API_BASE_URL`: Authentication API endpoint
 - `DEBUG_MODE`: Development debugging flag
-- `CSRF_TOKEN`: CSRF protection token
+- `CSRF_TOKEN_SECRET`: CSRF protection secret
+- `OIDC_DB`: D1 database binding (configured in wrangler.toml)
+
+### D1 Database Setup
+```bash
+# Production setup
+npx wrangler d1 create oidc-users-production
+npx wrangler d1 migrations apply oidc-users-production
+
+# Configure wrangler.toml with production database ID
+```
 
 ## Monitoring & Analytics
 
 ### Performance Monitoring
-- Core Web Vitals tracking
-- Error rate monitoring
-- API response time tracking
-- User journey analytics
+- Sign-in page load times
+- Authentication API response times
+- Error rates for authentication attempts
+- User conversion funnel analysis
 
 ### Security Monitoring
-- Failed login attempt tracking
+- Failed login attempt patterns
 - Rate limiting effectiveness
-- Security header compliance
-- Token-related errors
+- Suspicious authentication activity
+- CSRF attack attempts
+
+### User Experience Analytics
+- Sign-in completion rates
+- Form abandonment points
+- Error message frequency
+- Mobile vs desktop usage patterns
 
 ## Launch Criteria
 
 ### Go-Live Requirements
-- ✅ All functional requirements implemented
-- ✅ Security requirements validated
+- ✅ All authentication flows tested
+- ✅ D1 database schema deployed
+- ✅ Security testing completed
 - ✅ Performance benchmarks met
+- ✅ Cross-browser compatibility verified
 - ✅ Accessibility audit passed
-- ✅ Cross-browser testing complete
-- ✅ Security testing complete
-- ✅ Load testing passed
+- ✅ OIDC integration validated
 
 ### Rollback Plan
-- Feature flag for instant rollback
-- Cloudflare Access backup authentication
+- Feature flag for instant rollback to Cloudflare Access
+- Database rollback procedures
 - Monitoring alerts for error rates
-- Quick deployment rollback process
-
-## Timeline
-
-### Phase 1: Development (Week 1)
-- Core functionality implementation
-- Basic styling and layout
-- API integration
-
-### Phase 2: Enhancement (Week 2)
-- Error handling refinement
-- Accessibility improvements
-- Performance optimization
-
-### Phase 3: Testing (Week 3)
-- Cross-browser testing
-- Security testing
-- Performance testing
-- User acceptance testing
-
-### Phase 4: Deployment (Week 4)
-- Production deployment
-- Monitoring setup
-- Go-live validation
+- Emergency access procedures
 
 ---
 
@@ -344,3 +475,4 @@ Content-Type: application/json
 - [ ] Engineering Lead
 - [ ] Security Team
 - [ ] UX/UI Designer
+- [ ] DevOps Team
