@@ -1,4 +1,4 @@
-name = "cf-workers-oidc"
+name = "wxc-oidc"
 main = "dist/main.mjs"
 compatibility_date = "2024-11-01"
 

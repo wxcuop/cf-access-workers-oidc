@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure authentication for your applications">
+    <title>Sign In - OIDC Authentication</title>
+    
+    <!-- Favicon and PWA meta tags -->
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/js/auth.js" as="script">
+    <link rel="preload" href="/js/validation.js" as="script">
+</head>
+<body class="auth-page">
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Authenticating...</p>
+    </div>
+
+    <!-- Main container -->
+    <div class="auth-container">
+        <!-- Header -->
+        <header class="auth-header">
+            <div class="logo">
+                <img src="/assets/logo.svg" alt="Logo" class="logo-image">
+                <h1>Secure Authentication</h1>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="auth-main">
+            <!-- Sign-in form -->
+            <div class="auth-card" id="signin-card">
+                <div class="auth-card-header">
+                    <h2>Sign In to Your Account</h2>
+                    <p class="auth-subtitle">Welcome back! Please enter your credentials.</p>
+                </div>
+
+                <form id="signin-form" class="auth-form" novalidate>
+                    <!-- Email field -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            Email Address
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="form-input" 
+                            placeholder="Enter your email"
+                            required
+                            autocomplete="email"
+                            aria-describedby="email-error"
+                        >
+                        <div id="email-error" class="form-error" role="alert"></div>
+                    </div>
+
+                    <!-- Password field -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            Password
+                            <span class="required">*</span>
+                        </label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input" 
+                                placeholder="Enter your password"
+                                required
+                                autocomplete="current-password"
+                                aria-describedby="password-error"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                id="password-toggle"
+                                aria-label="Toggle password visibility"
+                            >
+                                <span class="password-toggle-icon">👁️</span>
+                            </button>
+                        </div>
+                        <div id="password-error" class="form-error" role="alert"></div>
+                    </div>
+
+                    <!-- Remember me and forgot password -->
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember-me" name="remember">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password-link" id="forgot-password">
+                            Forgot your password?
+                        </a>
+                    </div>
+
+                    <!-- Submit button -->
+                    <button type="submit" class="btn btn-primary btn-full" id="signin-btn">
+                        <span class="btn-text">Sign In</span>
+                        <span class="btn-spinner hidden"></span>
+                    </button>
+
+                    <!-- Form-wide error display -->
+                    <div id="form-error" class="form-error form-error-general" role="alert"></div>
+                </form>
+
+                <!-- Alternative actions -->
+                <div class="auth-card-footer">
+                    <p>Don't have an account? 
+                        <a href="/register.html" class="auth-link">Create one here</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Password reset form (hidden by default) -->
+            <div class="auth-card hidden" id="reset-card">
+                <div class="auth-card-header">
+                    <h2>Reset Your Password</h2>
+                    <p class="auth-subtitle">Enter your email address and we'll send you a reset link.</p>
+                </div>
+
+                <form id="reset-form" class="auth-form" novalidate>
+                    <div class="form-group">
+                        <label for="reset-email" class="form-label">
+                            Email Address
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="reset-email" 
+                            name="email" 
+                            class="form-input" 
+                            placeholder="Enter your email"
+                            required
+                            autocomplete="email"
+                            aria-describedby="reset-email-error"
+                        >
+                        <div id="reset-email-error" class="form-error" role="alert"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="reset-btn">
+                        <span class="btn-text">Send Reset Link</span>
+                        <span class="btn-spinner hidden"></span>
+                    </button>
+
+                    <div id="reset-error" class="form-error form-error-general" role="alert"></div>
+                    <div id="reset-success" class="form-success hidden" role="alert">
+                        Reset link sent! Check your email for instructions.
+                    </div>
+                </form>
+
+                <div class="auth-card-footer">
+                    <a href="#" class="auth-link" id="back-to-signin">
+                        ← Back to Sign In
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="auth-footer">
+            <p>&copy; 2025 OIDC Authentication. Secure by design.</p>
+        </footer>
+    </div>
+
+    <!-- Success message for successful operations -->
+    <div id="success-toast" class="toast toast-success hidden">
+        <div class="toast-content">
+            <span class="toast-icon">✓</span>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- Error message for global errors -->
+    <div id="error-toast" class="toast toast-error hidden">
+        <div class="toast-content">
+            <span class="toast-icon">✗</span>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/validation.js"></script>
+    <script src="/js/auth.js"></script>
+    
+    <!-- Initialize the application -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AuthApp.init();
+        });
+    </script>
+</body>
+</html>

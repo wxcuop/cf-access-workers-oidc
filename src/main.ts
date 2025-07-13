@@ -61,7 +61,7 @@ export default {
     const stub = getDoStub(env)
 
     ctx.waitUntil(
-      stub.fetch('/jwks', {
+      stub.fetch('https://fake-host/jwks', {
         method: 'PATCH',
       }),
     )
@@ -198,10 +198,10 @@ async function handleToken(req: any, env: Env): Promise<Response> {
       data = JSON.parse(body)
       break
     case 'application/x-www-form-urlencoded':
-      data = Object.fromEntries(new URLSearchParams(body))
+      data = Object.fromEntries(Array.from(new URLSearchParams(body).entries()))
       break
     default:
-      data = Object.fromEntries(new URLSearchParams(body))
+      data = Object.fromEntries(Array.from(new URLSearchParams(body).entries()))
   }
 
   const { grant_type, client_id, client_secret, redirect_uri, code } = data
@@ -231,7 +231,7 @@ async function handleToken(req: any, env: Env): Promise<Response> {
 
   // Exchange code for id_token and access code
   const stub = getDoStub(env)
-  const res = await stub.fetch(`/exchange/${code}`)
+  const res = await stub.fetch(`https://fake-host/exchange/${code}`)
   return getResponse(await res.text(), res.status, corsHeaders)
 }
 
@@ -286,7 +286,7 @@ async function handleAuthorize(req: any, env: Env): Promise<Response> {
   // Pass the payload to Durable Object and get signed JWT token back
   // Also generate exchange code in case of 'code' OIDC authorization flow
   const stub = getDoStub(env)
-  const idTokenRes = await stub.fetch('/sign', {
+  const idTokenRes = await stub.fetch('https://fake-host/sign', {
     method: 'POST',
     body: JSON.stringify({
       payload,
@@ -316,7 +316,7 @@ async function handleAuthorize(req: any, env: Env): Promise<Response> {
 async function handleGetJwks(req: any, env: Env): Promise<Response> {
   const corsHeaders = getCorsHeaders(getAllowedOrigin(req, '*'))
   const stub = getDoStub(env)
-  const jwksRes = await stub.fetch('/jwks')
+  const jwksRes = await stub.fetch('https://fake-host/jwks')
 
   return getResponse(await jwksRes.text(), 200, corsHeaders)
 }

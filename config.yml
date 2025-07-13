@@ -13,15 +13,21 @@ refresh_token_ttl: 604800 # Refresh token TTL (7 days) - OIDC refresh tokens
 
 # OIDC Client Applications
 clients:
-  # Example web application
-  - name: "Your Web Application"
+  # Frontend Sign-In Page
+  - name: "OIDC Frontend"
     client_id: b78f6b19-50ca-4bab-85bf-93e6c51ff8fb # Generate unique UUID from https://uuid.rocks/plain
     client_secret_key: SECRET_CLIENT_APP # Set with: wrangler secret put SECRET_CLIENT_APP
     redirect_uris:
-      - https://your-app.example.com/auth/callback
-      - https://your-app.example.com/auth/silent-callback
+      - https://your-frontend.pages.dev/auth/callback
+      - https://your-frontend.pages.dev/auth/silent-callback
+      - http://localhost:8080/auth/callback # For local development
+      - http://localhost:3000/auth/callback # For local development
     cors_origins:
-      - https://your-app.example.com
+      - https://your-frontend.pages.dev
+      - http://localhost:8080 # For local development
+      - http://localhost:3000 # For local development
+      - http://127.0.0.1:8080 # For local development
+      - http://127.0.0.1:3000 # For local development
     # Optional: Restrict access to specific groups
     allowed_groups:
       - users

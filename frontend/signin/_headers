@@ -1,0 +1,70 @@
+# Cloudflare Pages Configuration
+
+# Build settings
+[build]
+  # Build command (if needed for processing)
+  command = ""
+  
+  # Publish directory
+  publish = "frontend/signin"
+
+# Environment variables for production
+[env.production]
+  NODE_ENV = "production"
+
+# Environment variables for preview
+[env.preview]
+  NODE_ENV = "preview"
+
+# Functions configuration (for future edge functions if needed)
+[functions]
+  # Directory for serverless functions
+  directory = "functions"
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Security headers for HTML files
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; connect-src 'self' *.workers.dev localhost:*"
+
+# Cache headers for static assets
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects
+[[redirects]]
+  from = "/login"
+  to = "/index.html"
+  status = 301
+
+[[redirects]]
+  from = "/signin"
+  to = "/index.html"
+  status = 301
+
+# SPA fallback (if needed)
+[[redirects]]
+  from = "/oidc/*"
+  to = "/index.html"
+  status = 200
