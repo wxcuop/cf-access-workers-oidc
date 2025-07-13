@@ -209,8 +209,30 @@ export class AuthService {
       
       this.passwordResetTokens.set(resetToken, resetTokenData)
       
-      // TODO: Send email with reset token
-      // For now, we'll just store it
+      // Generate reset URL for logging
+      const resetUrl = `https://wxclogin.pages.dev/reset-password?token=${resetToken}`
+      
+      // Log email content for development/testing
+      console.log('=== PASSWORD RESET EMAIL ===')
+      console.log(`To: ${email}`)
+      console.log(`Subject: Reset Your Password - OIDC Authentication`)
+      console.log(``)
+      console.log(`Hi ${user.name || 'User'},`)
+      console.log(``)
+      console.log(`You requested a password reset for your account. Click the link below to reset your password:`)
+      console.log(``)
+      console.log(`${resetUrl}`)
+      console.log(``)
+      console.log(`This link will expire in 1 hour.`)
+      console.log(``)
+      console.log(`If you didn't request this reset, please ignore this email.`)
+      console.log(``)
+      console.log(`Thanks,`)
+      console.log(`OIDC Authentication Team`)
+      console.log('============================')
+      
+      // TODO: Replace console.log with actual email sending service
+      // Options: Cloudflare Email Routing, SendGrid, Resend, etc.
     }
   }
 
@@ -508,6 +530,83 @@ export class AuthService {
       return new Response(JSON.stringify({
         success: false,
         error: 'Internal server error'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  /**
+   * Development helper: Get password reset tokens for testing
+   * WARNING: Remove this in production!
+   */
+  async getPasswordResetTokens(): Promise<Array<{token: string, email: string, expires_at: number, used: boolean}>> {
+    const tokens = []
+    for (const [token, data] of this.passwordResetTokens.entries()) {
+      tokens.push({
+        token: token,
+        email: data.user_email,
+        expires_at: data.expires_at,
+        used: data.used
+      })
+    }
+    return tokens.sort((a, b) => b.expires_at - a.expires_at) // Most recent first
+  }
+
+  async handleGetPasswordResetTokens(request: any): Promise<Response> {
+    // WARNING: This is for development only!
+    // In production, remove this endpoint or add proper authentication
+    try {
+      const tokens = await this.getPasswordResetTokens()
+      
+      return new Response(JSON.stringify({
+        success: true,
+        tokens: tokens,
+        count: tokens.length
+      }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to retrieve reset tokens'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  /**
+   * Development: Get all password reset tokens
+   */
+  async getResetTokens(): Promise<any> {
+    // Return all tokens (for dev only)
+    const tokens = Array.from(this.passwordResetTokens.values()).map(t => ({
+      token: t.token,
+      email: t.user_email,
+      created_at: t.created_at,
+      expires_at: t.expires_at,
+      used: t.used
+    }))
+    return {
+      success: true,
+      tokens
+    }
+  }
+
+  async handleGetResetTokens(request: any): Promise<Response> {
+    // WARNING: This is for development only!
+    // In production, remove this endpoint or add proper authentication
+    try {
+      const result = await this.getResetTokens()
+      
+      return new Response(JSON.stringify(result), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to retrieve reset tokens'
       }), { status: 500, headers: { 'Content-Type': 'application/json' } })
     }
   }

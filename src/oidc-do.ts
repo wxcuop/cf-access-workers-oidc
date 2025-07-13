@@ -168,6 +168,9 @@ export class OpenIDConnectDurableObject {
     router.post('/auth/reset-password', req => this.handleAuthRequest(req, 'requestReset'))
     router.put('/auth/reset-password/:token', req => this.handleAuthRequest(req, 'resetPassword'))
 
+    // Development endpoints (remove in production)
+    router.get('/dev/reset-tokens', req => this.handleAuthRequest(req, 'getResetTokens'))
+
     // Admin endpoints - Group management
     router.get('/admin/groups', req => this.handleAdminRequest(req, 'getGroups'))
     router.post('/admin/groups', req => this.handleAdminRequest(req, 'createGroup'))
@@ -216,6 +219,8 @@ export class OpenIDConnectDurableObject {
           return await this.authService.handleRequestPasswordReset(request)
         case 'resetPassword':
           return await this.authService.handleResetPassword(request)
+        case 'getResetTokens':
+          return await this.authService.handleGetPasswordResetTokens(request)
         default:
           return getResponse({ error: 'Unknown authentication action' }, 400)
       }
