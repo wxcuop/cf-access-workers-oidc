@@ -435,10 +435,14 @@ const Validation = {
     /**
      * Show form-wide error message
      */
+    /**
+     * Show form-wide error message
+     */
     showFormError(formElement, message) {
         const errorElement = formElement.querySelector('#form-error');
         if (errorElement) {
-            errorElement.textContent = message;
+            // Use innerHTML to allow HTML content like links
+            errorElement.innerHTML = message;
             errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     },
@@ -449,7 +453,7 @@ const Validation = {
     clearFormError(formElement) {
         const errorElement = formElement.querySelector('#form-error');
         if (errorElement) {
-            errorElement.textContent = '';
+            errorElement.innerHTML = '';
         }
     },
 

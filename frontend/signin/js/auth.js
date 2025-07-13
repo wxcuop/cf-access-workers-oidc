@@ -337,8 +337,8 @@ const AuthApp = {
             
             let errorMessage = 'Registration failed. Please try again.';
             
-            if (error.message.includes('Email already exists')) {
-                errorMessage = 'An account with this email already exists. Please sign in instead.';
+            if (error.message.includes('Email already exists') || error.message.includes('User already exists')) {
+                errorMessage = 'An account with this email already exists. <a href="/" style="color: #2563eb; text-decoration: underline; font-weight: 500;">Please sign in instead</a>.';
             } else if (error.message.includes('Invalid email')) {
                 errorMessage = 'Please enter a valid email address.';
             } else if (error.message.includes('Password too weak')) {
