@@ -236,14 +236,14 @@ const AuthApp = {
             });
             
             if (response.success) {
-                // Store tokens
-                this.storeTokens(response.data);
+                // Store tokens (response contains tokens directly, not in data property)
+                this.storeTokens(response);
                 
                 // Show success message
                 this.showToast('Sign in successful! You are now logged in.', 'success');
                 
                 // For now, just show success - in a real app you'd redirect to dashboard
-                console.log('Sign in successful, user logged in:', response.data.user);
+                console.log('Sign in successful, user logged in:', response.user);
                 
                 // Optional: Redirect after a delay to show success message  
                 setTimeout(() => {
@@ -313,14 +313,14 @@ const AuthApp = {
             });
             
             if (response.success) {
-                // Store tokens
-                this.storeTokens(response.data);
+                // Store tokens (response contains tokens directly, not in data property)
+                this.storeTokens(response);
                 
                 // Show success message
                 this.showToast('Account created successfully! You are now signed in.', 'success');
                 
                 // For now, just show success - in a real app you'd redirect to dashboard
-                console.log('Registration successful, user logged in:', response.data.user);
+                console.log('Registration successful, user logged in:', response.user);
                 
                 // Optional: Redirect after a delay to show success message
                 setTimeout(() => {
@@ -604,16 +604,21 @@ const AuthApp = {
      * Store authentication tokens
      */
     storeTokens(tokenData) {
-        if (tokenData.accessToken) {
-            Utils.storage.set('access_token', tokenData.accessToken);
+        // Handle both camelCase and snake_case field names
+        const accessToken = tokenData.accessToken || tokenData.access_token;
+        const refreshToken = tokenData.refreshToken || tokenData.refresh_token;
+        const expiresIn = tokenData.expiresIn || tokenData.expires_in;
+        
+        if (accessToken) {
+            Utils.storage.set('access_token', accessToken);
         }
         
-        if (tokenData.refreshToken) {
-            Utils.storage.set('refresh_token', tokenData.refreshToken);
+        if (refreshToken) {
+            Utils.storage.set('refresh_token', refreshToken);
         }
         
-        if (tokenData.expiresIn) {
-            const expiresAt = Date.now() + (tokenData.expiresIn * 1000);
+        if (expiresIn) {
+            const expiresAt = Date.now() + (expiresIn * 1000);
             Utils.storage.set('token_expires_at', expiresAt);
         }
         
