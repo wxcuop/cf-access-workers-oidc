@@ -48,6 +48,7 @@ const mockCrypto = {
 globalThis.crypto = mockCrypto
 
 // Mock TextEncoder/TextDecoder for Node.js environment
+// @ts-ignore
 if (!globalThis.TextEncoder) {
   // @ts-ignore
   globalThis.TextEncoder = class TextEncoder {
@@ -62,6 +63,7 @@ if (!globalThis.TextEncoder) {
   }
 }
 
+// @ts-ignore
 if (!globalThis.TextDecoder) {
   // @ts-ignore
   globalThis.TextDecoder = class TextDecoder {

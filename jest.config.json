@@ -8,7 +8,7 @@
   ],
   "testPathIgnorePatterns": [
     "/node_modules/",
-    "/tests/auth.test.ts"
+    "tests/.*\\.runtime\\.test\\.ts"
   ],
   "transformIgnorePatterns": [
     "node_modules/(?!(rfc4648|jwt-decode)/)"
@@ -16,8 +16,12 @@
   "transform": {
     "^.+\\.ts$": ["ts-jest", {
       "tsconfig": "tsconfig.json"
+    }],
+    "^.+\\.js$": ["ts-jest", {
+      "useESM": true
     }]
   },
+  "extensionsToTreatAsEsm": [".ts"],
   "collectCoverageFrom": [
     "src/**/*.ts",
     "!src/**/*.d.ts",
