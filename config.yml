@@ -18,12 +18,14 @@ clients:
     client_id: b78f6b19-50ca-4bab-85bf-93e6c51ff8fb # Generate unique UUID from https://uuid.rocks/plain
     client_secret_key: SECRET_CLIENT_APP # Set with: wrangler secret put SECRET_CLIENT_APP
     redirect_uris:
-      - https://wxclogin.pages.dev/auth/callback
+      - https://oidc-login.nyworking.us/auth/callback # New custom domain
+      - https://wxclogin.pages.dev/auth/callback # Keep during transition
       - https://wxclogin.pages.dev/auth/silent-callback
       - http://localhost:8080/auth/callback # For local development
       - http://localhost:3000/auth/callback # For local development
     cors_origins:
-      - https://wxclogin.pages.dev
+      - https://oidc-login.nyworking.us # New custom domain
+      - https://wxclogin.pages.dev # Keep during transition
       - http://localhost:8080 # For local development
       - http://localhost:3000 # For local development
       - http://127.0.0.1:8080 # For local development

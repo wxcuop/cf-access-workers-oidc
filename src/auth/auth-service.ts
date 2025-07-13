@@ -2,10 +2,11 @@
  * Authentication service for login, registration, and session management
  */
 
-import { User, UserSession, AuthRequest, AuthResponse, PasswordResetToken, RateLimitInfo } from '../types'
+import { User, UserSession, AuthRequest, AuthResponse, PasswordResetToken, RateLimitInfo, EmailService } from '../types'
 import { generateUUID, checkRateLimit, isValidEmail, validatePassword } from '../security/security-utils'
 import { JWTService } from '../oidc/jwt-service'
 import { UserService } from '../user/user-service'
+import { StorageService } from '../storage/storage-service'
 
 export class AuthService {
   private users: Map<string, User>
@@ -14,6 +15,8 @@ export class AuthService {
   private rateLimits: Map<string, RateLimitInfo>
   private jwtService: JWTService
   private userService: UserService
+  private storageService: StorageService
+  private emailService: EmailService
   private accessTokenTtl: number
 
   constructor(
@@ -23,6 +26,8 @@ export class AuthService {
     rateLimits: Map<string, RateLimitInfo>,
     jwtService: JWTService,
     userService: UserService,
+    storageService: StorageService,
+    emailService: EmailService,
     accessTokenTtl: number
   ) {
     this.users = users
@@ -31,6 +36,8 @@ export class AuthService {
     this.rateLimits = rateLimits
     this.jwtService = jwtService
     this.userService = userService
+    this.storageService = storageService
+    this.emailService = emailService
     this.accessTokenTtl = accessTokenTtl
   }
 
@@ -209,42 +216,34 @@ export class AuthService {
       
       this.passwordResetTokens.set(resetToken, resetTokenData)
       
-      // Generate reset URL for logging
-      const resetUrl = `https://wxclogin.pages.dev/reset-password?token=${resetToken}`
+      // Save to persistent storage
+      await this.storageService.savePasswordResetToken(resetToken, resetTokenData)
       
-      // Log email content for development/testing
-      console.log('=== PASSWORD RESET EMAIL ===')
-      console.log(`To: ${email}`)
-      console.log(`Subject: Reset Your Password - OIDC Authentication`)
-      console.log(``)
-      console.log(`Hi ${user.name || 'User'},`)
-      console.log(``)
-      console.log(`You requested a password reset for your account. Click the link below to reset your password:`)
-      console.log(``)
-      console.log(`${resetUrl}`)
-      console.log(``)
-      console.log(`This link will expire in 1 hour.`)
-      console.log(``)
-      console.log(`If you didn't request this reset, please ignore this email.`)
-      console.log(``)
-      console.log(`Thanks,`)
-      console.log(`OIDC Authentication Team`)
-      console.log('============================')
-      
-      // TODO: Replace console.log with actual email sending service
-      // Options: Cloudflare Email Routing, SendGrid, Resend, etc.
+      // Send password reset email
+      try {
+        await this.emailService.sendPasswordResetEmail(email, resetToken, user.name)
+        console.log(`Password reset email sent successfully to ${email}`)
+      } catch (error) {
+        console.error('Failed to send password reset email:', error)
+        // Don't throw error to prevent email enumeration
+        // The user will still get a success message, but the email failed to send
+        // In production, you might want to alert administrators about email failures
+      }
     }
   }
 
   async resetPassword(token: string, password: string): Promise<void> {
     // Find reset token
     const resetTokenData = this.passwordResetTokens.get(token)
+    
     if (!resetTokenData) {
       throw new Error('Invalid or expired reset token')
     }
     
     // Check if token is expired or used
-    if (resetTokenData.used || Date.now() > resetTokenData.expires_at) {
+    const currentTime = Date.now()
+    
+    if (resetTokenData.used || currentTime > resetTokenData.expires_at) {
       throw new Error('Invalid or expired reset token')
     }
     
@@ -260,6 +259,9 @@ export class AuthService {
     // Mark token as used
     resetTokenData.used = true
     this.passwordResetTokens.set(token, resetTokenData)
+    
+    // Remove from persistent storage since it's now used
+    await this.storageService.deletePasswordResetToken(token)
     
     // Invalidate all sessions for this user
     for (const [sessionId, session] of Array.from(this.sessions.entries())) {
@@ -535,42 +537,23 @@ export class AuthService {
   }
 
   /**
-   * Development helper: Get password reset tokens for testing
-   * WARNING: Remove this in production!
+   * Clean up expired password reset tokens
    */
-  async getPasswordResetTokens(): Promise<Array<{token: string, email: string, expires_at: number, used: boolean}>> {
-    const tokens = []
-    for (const [token, data] of this.passwordResetTokens.entries()) {
-      tokens.push({
-        token: token,
-        email: data.user_email,
-        expires_at: data.expires_at,
-        used: data.used
-      })
+  async cleanupExpiredTokens(): Promise<void> {
+    const currentTime = Date.now()
+    const expiredTokens: string[] = []
+    
+    // Find expired tokens
+    for (const [token, tokenData] of this.passwordResetTokens.entries()) {
+      if (tokenData.used || currentTime > tokenData.expires_at) {
+        expiredTokens.push(token)
+      }
     }
-    return tokens.sort((a, b) => b.expires_at - a.expires_at) // Most recent first
-  }
-
-  async handleGetPasswordResetTokens(request: any): Promise<Response> {
-    // WARNING: This is for development only!
-    // In production, remove this endpoint or add proper authentication
-    try {
-      const tokens = await this.getPasswordResetTokens()
-      
-      return new Response(JSON.stringify({
-        success: true,
-        tokens: tokens,
-        count: tokens.length
-      }), { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json' } 
-      })
-      
-    } catch (error) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Failed to retrieve reset tokens'
-      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    
+    // Remove expired tokens from memory and storage
+    for (const token of expiredTokens) {
+      this.passwordResetTokens.delete(token)
+      await this.storageService.deletePasswordResetToken(token)
     }
   }
 
@@ -578,6 +561,9 @@ export class AuthService {
    * Development: Get all password reset tokens
    */
   async getResetTokens(): Promise<any> {
+    // Clean up expired tokens first
+    await this.cleanupExpiredTokens()
+    
     // Return all tokens (for dev only)
     const tokens = Array.from(this.passwordResetTokens.values()).map(t => ({
       token: t.token,
@@ -588,7 +574,8 @@ export class AuthService {
     }))
     return {
       success: true,
-      tokens
+      tokens,
+      count: tokens.length
     }
   }
 

@@ -31,6 +31,10 @@ router.post('/auth/logout', (req, env) => handleAuth(req, env))
 router.post('/auth/reset-password', (req, env) => handleAuth(req, env))
 router.put('/auth/reset-password/:token', (req, env) => handleAuth(req, env))
 
+// Development endpoints (remove in production)
+router.get('/dev/reset-tokens', (req, env) => handleAuth(req, env))
+router.get('/dev/debug-token/:token', (req, env) => handleAuth(req, env))
+
 // User and group management endpoints
 router.get('/users', (req, env) => handleAuth(req, env))
 router.post('/users', (req, env) => handleAuth(req, env))

@@ -77,4 +77,22 @@ export class StorageService {
   async listData(options?: { prefix?: string }): Promise<Map<string, any>> {
     return await this.storage.list(options)
   }
+
+  async savePasswordResetToken(token: string, data: any): Promise<void> {
+    await this.storage.put(`reset_token:${token}`, data)
+  }
+
+  async loadPasswordResetTokens(): Promise<Map<string, any>> {
+    const tokens = new Map()
+    const tokenEntries = await this.storage.list({ prefix: 'reset_token:' })
+    tokenEntries.forEach((tokenData, key) => {
+      const token = key.replace('reset_token:', '')
+      tokens.set(token, tokenData)
+    })
+    return tokens
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    await this.storage.delete(`reset_token:${token}`)
+  }
 }

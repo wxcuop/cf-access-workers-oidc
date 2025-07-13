@@ -2,8 +2,11 @@ name = "wxc-oidc"
 main = "dist/main.mjs"
 compatibility_date = "2024-11-01"
 
-#zone_id = "your-zone-id"
-#routes = ["oidc.example.com/*"]
+# Custom domain configuration
+# Note: Custom domains are managed via Cloudflare Workers dashboard
+# The oidc.nyworking.us domain is configured there
+
+#zone_id = "your-zone-id"  # Not needed when using custom domains
 
 [durable_objects]
 bindings = [

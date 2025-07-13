@@ -17,7 +17,8 @@ import {
   User, 
   UserSession, 
   PasswordResetToken, 
-  RateLimitInfo 
+  RateLimitInfo,
+  EmailService
 } from './types'
 
 // Services
@@ -27,6 +28,7 @@ import { UserService } from './user/user-service'
 import { GroupService } from './group/group-service'
 import { AuthService } from './auth/auth-service'
 import { StorageService } from './storage/storage-service'
+import { ResendEmailService, NoOpEmailService } from './services/email-service'
 
 /**
  * OpenID Connect Durable Object
@@ -63,6 +65,7 @@ export class OpenIDConnectDurableObject {
   private groupService!: GroupService
   private authService!: AuthService
   private storageService!: StorageService
+  private emailService!: EmailService
 
   private router!: Router<any>
 
@@ -98,9 +101,29 @@ export class OpenIDConnectDurableObject {
 
     // Load persistent data
     await this.storageService.loadGroupsAndUsers()
+    
+    // Load password reset tokens from storage
+    const storedTokens = await this.storageService.loadPasswordResetTokens()
+    this.passwordResetTokens.clear()
+    storedTokens.forEach((tokenData, token) => {
+      this.passwordResetTokens.set(token, tokenData)
+    })
 
     // Set up routing
     this.setupRouting()
+  }
+
+  private initializeEmailService(): EmailService {
+    const resendApiKey = this.env.RESEND_API_KEY
+    
+    if (!resendApiKey) {
+      console.warn('RESEND_API_KEY not found. Using No-Op email service (emails will be logged only).')
+      return new NoOpEmailService()
+    }
+    
+    console.log('Initializing Resend email service with verified domain')
+    // Use your verified domain for professional email sending
+    return new ResendEmailService(resendApiKey, 'noreply@nyworking.us')
   }
 
   private initializeServices(): void {
@@ -139,6 +162,9 @@ export class OpenIDConnectDurableObject {
       this.rateLimits
     )
 
+    // Initialize email service
+    this.emailService = this.initializeEmailService()
+
     // Authentication service (depends on other services)
     this.authService = new AuthService(
       this.users,
@@ -147,6 +173,8 @@ export class OpenIDConnectDurableObject {
       this.rateLimits,
       this.jwtService,
       this.userService,
+      this.storageService,
+      this.emailService,
       this.accessTokenTtl
     )
   }
@@ -170,6 +198,7 @@ export class OpenIDConnectDurableObject {
 
     // Development endpoints (remove in production)
     router.get('/dev/reset-tokens', req => this.handleAuthRequest(req, 'getResetTokens'))
+    router.get('/dev/debug-token/:token', req => this.handleAuthRequest(req, 'debugToken'))
 
     // Admin endpoints - Group management
     router.get('/admin/groups', req => this.handleAdminRequest(req, 'getGroups'))
@@ -220,7 +249,7 @@ export class OpenIDConnectDurableObject {
         case 'resetPassword':
           return await this.authService.handleResetPassword(request)
         case 'getResetTokens':
-          return await this.authService.handleGetPasswordResetTokens(request)
+          return await this.authService.handleGetResetTokens(request)
         default:
           return getResponse({ error: 'Unknown authentication action' }, 400)
       }

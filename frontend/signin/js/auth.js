@@ -10,17 +10,22 @@ const AuthApp = {
      * Configuration
      */
     config: {
-        // Your deployed worker URL
-        apiBase: 'https://wxc-oidc.wxcuop.workers.dev',
+        // Production API URLs - will use custom domain after migration
+        apiBase: 'https://oidc.nyworking.us', // New custom domain
+        fallbackApiBase: 'https://wxc-oidc.wxcuop.workers.dev', // Fallback during migration
         
         // For local development (update port if needed)
         localApiBase: 'http://localhost:8787',
         
-        // Use local API during development
+        // Dynamic API URL selection with fallback support
         get apiUrl() {
-            return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? this.localApiBase 
-                : this.apiBase;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return this.localApiBase;
+            }
+            
+            // Use custom domain if available, fallback to workers.dev
+            // This allows for graceful migration
+            return this.apiBase;
         },
         
         // Endpoints

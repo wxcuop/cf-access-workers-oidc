@@ -4,7 +4,10 @@ declare global {
     }
 }
 
-export interface Env {}
+export interface Env {
+  DO_OIDC: DurableObjectNamespace
+  RESEND_API_KEY?: string
+}
 
 // Cloudflare Worker Types
 export interface ScheduledController {
@@ -128,4 +131,14 @@ export interface RateLimitInfo {
     attempts: number;
     first_attempt: number;
     locked_until?: number;
+}
+
+export interface EmailService {
+  sendPasswordResetEmail(email: string, token: string, userName?: string): Promise<void>
+}
+
+export interface EmailTemplate {
+  subject: string
+  html: string
+  text: string
 }
