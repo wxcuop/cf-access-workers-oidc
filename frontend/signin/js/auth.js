@@ -35,7 +35,7 @@ const AuthApp = {
         
         // OIDC Configuration
         oidc: {
-            clientId: 'your-client-id', // Will be updated when deployed
+            clientId: 'b78f6b19-50ca-4bab-85bf-93e6c51ff8fb', // Client ID from config.yml
             redirectUri: window.location.origin + '/oidc/callback',
             scope: 'openid profile email groups',
             responseType: 'code',
@@ -240,10 +240,16 @@ const AuthApp = {
                 this.storeTokens(response.data);
                 
                 // Show success message
-                this.showToast('Sign in successful! Redirecting...', 'success');
+                this.showToast('Sign in successful! You are now logged in.', 'success');
                 
-                // Redirect to OIDC flow or callback URL
-                await this.initiateOIDCFlow();
+                // For now, just show success - in a real app you'd redirect to dashboard
+                console.log('Sign in successful, user logged in:', response.data.user);
+                
+                // Optional: Redirect after a delay to show success message  
+                setTimeout(() => {
+                    // In a real app, redirect to dashboard
+                    console.log('Would redirect to dashboard here');
+                }, 2000);
                 
             } else {
                 throw new Error(response.error || 'Sign in failed');
@@ -311,10 +317,16 @@ const AuthApp = {
                 this.storeTokens(response.data);
                 
                 // Show success message
-                this.showToast('Account created successfully! Redirecting...', 'success');
+                this.showToast('Account created successfully! You are now signed in.', 'success');
                 
-                // Redirect to OIDC flow
-                await this.initiateOIDCFlow();
+                // For now, just show success - in a real app you'd redirect to dashboard
+                console.log('Registration successful, user logged in:', response.data.user);
+                
+                // Optional: Redirect after a delay to show success message
+                setTimeout(() => {
+                    // In a real app, redirect to dashboard
+                    console.log('Would redirect to dashboard here');
+                }, 2000);
                 
             } else {
                 throw new Error(response.error || 'Registration failed');
