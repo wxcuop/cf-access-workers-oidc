@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | OIDC Authentication System</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="icon" href="../signin/assets/favicon.svg" type="image/svg+xml">
+</head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://oidc.nyworking.us;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="../signin/assets/logo.svg" alt="Logo" class="sidebar-logo">
+                <h1>OIDC Admin</h1>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active">
+                        <a href="index.html">
+                            <span class="icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html">
+                            <span class="icon">👥</span>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="groups.html">
+                            <span class="icon">🔐</span>
+                            <span>Group Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html">
+                            <span class="icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="btn-logout">
+                    <span class="icon">🚪</span>
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                </button>
+                <div class="header-title">
+                    <h2>Dashboard</h2>
+                </div>
+                <div class="header-actions">
+                    <div class="admin-profile">
+                        <span class="admin-name">Admin User</span>
+                        <div class="admin-avatar">AU</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-container">
+                <div class="dashboard-overview">
+                    <div class="stats-card-grid">
+                        <div class="stats-card">
+                            <h3>Total Users</h3>
+                            <div class="stats-value" id="total-users">--</div>
+                            <div class="stats-trend">Loading data...</div>
+                        </div>
+                        <div class="stats-card">
+                            <h3>Active Groups</h3>
+                            <div class="stats-value" id="total-groups">--</div>
+                            <div class="stats-trend">Loading data...</div>
+                        </div>
+                        <div class="stats-card">
+                            <h3>Login Success Rate</h3>
+                            <div class="stats-value" id="login-rate">--%</div>
+                            <div class="stats-trend">Loading data...</div>
+                        </div>
+                        <div class="stats-card">
+                            <h3>Active Sessions</h3>
+                            <div class="stats-value" id="active-sessions">--</div>
+                            <div class="stats-trend">Loading data...</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-sections">
+                        <section class="dashboard-section">
+                            <h3>Recent Activity</h3>
+                            <div class="activity-list" id="recent-activity">
+                                <div class="activity-loading">Loading activity data...</div>
+                            </div>
+                        </section>
+                        
+                        <section class="dashboard-section">
+                            <h3>System Health</h3>
+                            <div class="health-status" id="system-health">
+                                <div class="health-loading">Loading health data...</div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal-container" id="modal-container"></div>
+    
+    <script src="js/admin-dashboard.js"></script>
+    <script src="js/admin-auth.js"></script>
+</body>
+</html>

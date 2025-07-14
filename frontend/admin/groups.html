@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Management | OIDC Authentication System</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="icon" href="../signin/assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="../signin/assets/logo.svg" alt="Logo" class="sidebar-logo">
+                <h1 class="sidebar-title">Admin</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-label">Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="groups.html" class="nav-link">
+                            <span class="nav-icon">🔐</span>
+                            <span class="nav-label">Groups</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span class="nav-label">Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="logs.html" class="nav-link">
+                            <span class="nav-icon">📝</span>
+                            <span class="nav-label">Activity Logs</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="../signin/index.html" class="nav-link logout-link">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-label">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-content">
+            <!-- Top Header -->
+            <header class="admin-header">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="header-title">
+                    <h1>Group Management</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle">
+                            <span class="avatar">A</span>
+                            <span class="user-name">Admin User</span>
+                            <span class="dropdown-icon">▼</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">My Profile</a></li>
+                            <li><a href="#">Settings</a></li>
+                            <li><a href="../signin/index.html">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Group Management Content -->
+            <div class="content-container" id="group-management">
+                <div class="content-header">
+                    <div class="content-header-actions">
+                        <button class="btn btn-primary" id="add-group-btn">
+                            <span class="btn-icon">➕</span>
+                            Add New Group
+                        </button>
+                    </div>
+                    <div class="content-header-filters">
+                        <div class="search-box">
+                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="card">
+                        <div class="card-body p-0" id="group-table-container">
+                            <p class="placeholder-text">Loading group data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-footer">
+                    <div class="group-info">
+                        <div class="info-item">
+                            <span class="info-icon">🔐</span>
+                            <span class="info-text">Groups control access to system features and resources</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/admin-utils.js"></script>
+    <script src="js/group-management.js"></script>
+</body>
+</html>
