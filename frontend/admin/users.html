@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management | OIDC Authentication System</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin-clean.css">
     <link rel="icon" href="../signin/assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -50,10 +50,10 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="../signin/index.html" class="nav-link logout-link">
+                <button class="nav-link logout-link logout-btn">
                     <span class="nav-icon">🚪</span>
                     <span class="nav-label">Logout</span>
-                </a>
+                </button>
             </div>
         </aside>
 
@@ -89,7 +89,7 @@
             <div class="content-container" id="user-management">
                 <div class="content-header">
                     <div class="content-header-actions">
-                        <button class="btn btn-primary">
+                        <button class="btn btn-primary" id="add-user-btn">
                             <span class="btn-icon">➕</span>
                             Add New User
                         </button>
@@ -128,8 +128,68 @@
         </main>
     </div>
 
+    <!-- Add User Modal -->
+    <div class="modal" id="add-user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New User</h3>
+                <button class="modal-close" id="add-user-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-user-form">
+                    <div class="form-group">
+                        <label for="new-user-name" class="form-label">Full Name</label>
+                        <input type="text" id="new-user-name" name="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-email" class="form-label">Email Address</label>
+                        <input type="email" id="new-user-email" name="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-password" class="form-label">Password</label>
+                        <input type="password" id="new-user-password" name="password" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-status" class="form-label">Status</label>
+                        <select id="new-user-status" name="status" class="form-input">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Groups</label>
+                        <div id="new-user-groups" class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="group-admins" name="groups" value="Admins">
+                                <label for="group-admins">Admins</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="group-developers" name="groups" value="Developers">
+                                <label for="group-developers">Developers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="group-managers" name="groups" value="Managers">
+                                <label for="group-managers">Managers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="group-users" name="groups" value="Users">
+                                <label for="group-users">Users</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="add-user-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="add-user-save">Add User</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="js/admin-utils.js"></script>
-    <script src="js/user-management.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/admin-middleware.js"></script>
+    <script src="js/user-management-clean.js"></script>
 </body>
 </html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | OIDC Authentication System</title>
+    <link rel="stylesheet" href="css/admin-clean.css">
+    <link rel="icon" href="../signin/assets/favicon.svg" type="image/svg+xml">
+    <style>
+        /* Login-specific styles */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+            padding: var(--space-4);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: var(--space-8);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .login-logo {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto var(--space-4);
+            display: block;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .login-subtitle {
+            color: var(--text-gray-600);
+            font-size: 0.875rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-gray-700);
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            padding: var(--space-3);
+            border: 1px solid var(--border-gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .login-button {
+            background: var(--primary-600);
+            color: white;
+            border: none;
+            padding: var(--space-3);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: var(--space-2);
+        }
+
+        .login-button:hover {
+            background: var(--primary-700);
+            transform: translateY(-1px);
+        }
+
+        .login-button:disabled {
+            background: var(--bg-gray-300);
+            color: var(--text-gray-500);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: var(--bg-red-50);
+            color: var(--text-red-700);
+            padding: var(--space-3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-red-200);
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin-right: var(--space-2);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .demo-credentials {
+            background: var(--bg-blue-50);
+            border: 1px solid var(--border-blue-200);
+            border-radius: 8px;
+            padding: var(--space-4);
+            margin-top: var(--space-6);
+        }
+
+        .demo-title {
+            font-weight: 600;
+            color: var(--text-blue-800);
+            margin-bottom: var(--space-2);
+            font-size: 0.875rem;
+        }
+
+        .demo-creds {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-blue-700);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="../signin/assets/logo.svg" alt="Logo" class="login-logo">
+                <h1 class="login-title">Admin Portal</h1>
+                <p class="login-subtitle">Sign in to access the admin dashboard</p>
+            </div>
+
+            <form class="login-form" id="loginForm">
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        required 
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        required 
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                    >
+                </div>
+
+                <button type="submit" class="login-button" id="loginButton">
+                    <span class="loading-spinner" id="loadingSpinner"></span>
+                    <span id="buttonText">Sign In</span>
+                </button>
+            </form>
+
+            <div class="demo-credentials">
+                <div class="demo-title">Demo Credentials</div>
+                <div class="demo-creds">
+                    Super Admin:<br>
+                    Email: admin@example.com<br>
+                    Password: admin123<br><br>
+                    
+                    Admin:<br>
+                    Email: manager@example.com<br>
+                    Password: manager123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script>
+        class LoginHandler {
+            constructor() {
+                this.form = document.getElementById('loginForm');
+                this.emailInput = document.getElementById('email');
+                this.passwordInput = document.getElementById('password');
+                this.submitButton = document.getElementById('loginButton');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.loadingSpinner = document.getElementById('loadingSpinner');
+                this.buttonText = document.getElementById('buttonText');
+                
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                this.form.addEventListener('submit', this.handleSubmit.bind(this));
+                
+                // Clear error on input change
+                [this.emailInput, this.passwordInput].forEach(input => {
+                    input.addEventListener('input', () => this.hideError());
+                });
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const email = this.emailInput.value.trim();
+                const password = this.passwordInput.value;
+
+                if (!email || !password) {
+                    this.showError('Please enter both email and password');
+                    return;
+                }
+
+                this.setLoading(true);
+                this.hideError();
+
+                try {
+                    const result = await adminAuth.login(email, password);
+                    
+                    if (result.success) {
+                        // Success - redirect will be handled by adminAuth
+                        this.buttonText.textContent = 'Success! Redirecting...';
+                    } else {
+                        this.showError(result.error || 'Login failed');
+                        this.setLoading(false);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showError('An unexpected error occurred');
+                    this.setLoading(false);
+                }
+            }
+
+            setLoading(loading) {
+                this.submitButton.disabled = loading;
+                this.loadingSpinner.style.display = loading ? 'block' : 'none';
+                
+                if (loading) {
+                    this.buttonText.textContent = 'Signing in...';
+                } else {
+                    this.buttonText.textContent = 'Sign In';
+                }
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+            }
+
+            hideError() {
+                this.errorMessage.style.display = 'none';
+            }
+        }
+
+        // Initialize login handler when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new LoginHandler();
+        });
+    </script>
+</body>
+</html>

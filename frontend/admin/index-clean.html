@@ -50,10 +50,10 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <button class="logout-link logout-btn">
+                <a href="../signin/index.html" class="logout-link">
                     <span class="nav-icon">🚪</span>
                     <span class="nav-label">Logout</span>
-                </button>
+                </a>
             </div>
         </aside>
 
@@ -72,13 +72,12 @@
                 <div class="header-actions">
                     <div class="dropdown">
                         <button class="dropdown-toggle">
-                            <span class="avatar" id="userAvatar">A</span>
-                            <span class="user-name" id="userName">Admin User</span>
+                            <span class="avatar">A</span>
+                            <span class="user-name">Admin User</span>
                             <span class="dropdown-icon">▼</span>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a href="#" id="userProfile">My Profile</a></li>
-                            <li><a href="#" class="logout-btn">Logout</a></li>
+                            <li><a href="#">My Profile</a></li>
                             <li><a href="#">Settings</a></li>
                             <li><a href="../signin/index.html">Logout</a></li>
                         </ul>
@@ -202,24 +201,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/admin-api.js"></script>
-    <script src="js/admin-auth.js"></script>
-    <script src="js/admin-middleware.js"></script>
     <script src="js/dashboard-clean.js"></script>
-    <script>
-        // Initialize user info from session
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = adminAuth.getCurrentUser();
-            if (user) {
-                document.getElementById('userName').textContent = user.name;
-                document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
-                
-                // Add role indicator if needed
-                const roleDisplay = user.role === 'super_admin' ? 'Super Admin' : 
-                                   user.role === 'admin' ? 'Admin' : 'Manager';
-                document.getElementById('userProfile').textContent = `${user.name} (${roleDisplay})`;
-            }
-        });
-    </script>
 </body>
 </html>

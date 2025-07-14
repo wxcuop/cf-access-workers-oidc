@@ -1,0 +1,206 @@
+<!-- Modal Templates for Admin Interface -->
+
+<!-- Generic Confirmation Modal -->
+<div class="modal" id="confirmModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+            <button class="modal-close" id="confirmModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmModalMessage">Are you sure you want to perform this action?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="confirmModalCancel">Cancel</button>
+            <button class="btn btn-danger" id="confirmModalConfirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- User Edit Modal -->
+<div class="modal" id="userEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="userEditModalTitle">Edit User</h3>
+            <button class="modal-close" id="userEditModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="userEditForm">
+                <div class="form-group">
+                    <label for="editUserName" class="form-label">Name</label>
+                    <input type="text" id="editUserName" name="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserEmail" class="form-label">Email</label>
+                    <input type="email" id="editUserEmail" name="email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserStatus" class="form-label">Status</label>
+                    <select id="editUserStatus" name="status" class="form-input">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Groups</label>
+                    <div id="editUserGroups" class="checkbox-group">
+                        <!-- Groups will be populated dynamically -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="userEditModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="userEditModalSave">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add New User Modal -->
+<div class="modal" id="addUserModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New User</h3>
+            <button class="modal-close" id="addUserModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label for="newUserName" class="form-label">Name</label>
+                    <input type="text" id="newUserName" name="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserEmail" class="form-label">Email</label>
+                    <input type="email" id="newUserEmail" name="email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserPassword" class="form-label">Password</label>
+                    <input type="password" id="newUserPassword" name="password" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserStatus" class="form-label">Status</label>
+                    <select id="newUserStatus" name="status" class="form-input">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Groups</label>
+                    <div id="newUserGroups" class="checkbox-group">
+                        <!-- Groups will be populated dynamically -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="addUserModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="addUserModalSave">Add User</button>
+        </div>
+    </div>
+</div>
+
+<!-- Group Edit Modal -->
+<div class="modal" id="groupEditModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="groupEditModalTitle">Edit Group</h3>
+            <button class="modal-close" id="groupEditModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="groupEditForm">
+                <div class="form-group">
+                    <label for="editGroupName" class="form-label">Group Name</label>
+                    <input type="text" id="editGroupName" name="name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editGroupDescription" class="form-label">Description</label>
+                    <textarea id="editGroupDescription" name="description" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Permissions</label>
+                    <div id="editGroupPermissions" class="checkbox-group">
+                        <!-- Permissions will be populated dynamically -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="groupEditModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="groupEditModalSave">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal" id="loadingModal">
+    <div class="modal-content loading-modal">
+        <div class="modal-body text-center">
+            <div class="loading-spinner large"></div>
+            <p id="loadingMessage">Processing...</p>
+        </div>
+    </div>
+</div>
+
+<!-- CSS for modal functionality -->
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.loading-modal {
+    max-width: 300px;
+    text-align: center;
+}
+
+.loading-spinner.large {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+    margin: 0 auto var(--space-4);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border-gray-300);
+    border-radius: 8px;
+    padding: var(--space-3);
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin: 0;
+}
+</style>

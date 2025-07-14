@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>AdminAPI Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>API Initialization</h2>
+        <button onclick="testAPIInit()">Test API Initialization</button>
+        <div id="api-init-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Development Mode</h2>
+        <button onclick="testDevelopmentMode()">Check Development Mode</button>
+        <div id="dev-mode-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Authentication Test</h2>
+        <button onclick="testAuthentication()">Test Login</button>
+        <button onclick="testTokenVerification()">Test Token Verification</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>User Management</h2>
+        <button onclick="testUserAPI()">Test User APIs</button>
+        <div id="user-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Group Management</h2>
+        <button onclick="testGroupAPI()">Test Group APIs</button>
+        <div id="group-result"></div>
+    </div>
+
+    <script src="js/admin-api.js"></script>
+    <script>
+        function displayResult(elementId, status, message, data = null) {
+            const element = document.getElementById(elementId);
+            const statusClass = status === 'success' ? 'success' : 
+                               status === 'warning' ? 'warning' : 'error';
+            
+            let html = `<div class="status ${statusClass}">${message}</div>`;
+            
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            element.innerHTML = html;
+        }
+
+        async function testAPIInit() {
+            try {
+                const api = window.adminAPI;
+                if (api) {
+                    displayResult('api-init-result', 'success', 'AdminAPI initialized successfully', {
+                        isDevelopmentMode: api.isDevelopmentMode(),
+                        baseURL: api.baseURL
+                    });
+                } else {
+                    displayResult('api-init-result', 'error', 'AdminAPI not found');
+                }
+            } catch (error) {
+                displayResult('api-init-result', 'error', `API initialization failed: ${error.message}`);
+            }
+        }
+
+        async function testDevelopmentMode() {
+            try {
+                const isDev = window.adminAPI.isDevelopmentMode();
+                displayResult('dev-mode-result', 'success', `Development mode: ${isDev}`, {
+                    developmentMode: isDev,
+                    explanation: isDev ? 'Using mock data and no backend validation' : 'Production mode with backend API calls'
+                });
+            } catch (error) {
+                displayResult('dev-mode-result', 'error', `Development mode check failed: ${error.message}`);
+            }
+        }
+
+        async function testAuthentication() {
+            try {
+                // Test with mock credentials
+                const loginResult = await window.adminAPI.login('admin@example.com', 'admin123');
+                
+                if (loginResult.success) {
+                    displayResult('auth-result', 'success', 'Login test successful', loginResult);
+                } else {
+                    displayResult('auth-result', 'warning', 'Login test failed', loginResult);
+                }
+            } catch (error) {
+                displayResult('auth-result', 'error', `Authentication test failed: ${error.message}`);
+            }
+        }
+
+        async function testTokenVerification() {
+            try {
+                const isValid = await window.adminAPI.verifyToken();
+                displayResult('auth-result', isValid ? 'success' : 'warning', 
+                    `Token verification: ${isValid ? 'Valid' : 'Invalid'}`, { tokenValid: isValid });
+            } catch (error) {
+                displayResult('auth-result', 'error', `Token verification failed: ${error.message}`);
+            }
+        }
+
+        async function testUserAPI() {
+            try {
+                const users = await window.adminAPI.getUsers();
+                displayResult('user-result', 'success', `Retrieved ${users.length} users`, users.slice(0, 3));
+            } catch (error) {
+                displayResult('user-result', 'error', `User API test failed: ${error.message}`);
+            }
+        }
+
+        async function testGroupAPI() {
+            try {
+                const groups = await window.adminAPI.getGroups();
+                displayResult('group-result', 'success', `Retrieved ${groups.length} groups`, groups);
+            } catch (error) {
+                displayResult('group-result', 'error', `Group API test failed: ${error.message}`);
+            }
+        }
+
+        // Auto-run API initialization test on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            testAPIInit();
+            testDevelopmentMode();
+        });
+    </script>
+</body>
+</html>
