@@ -136,10 +136,20 @@ export function getAdminUsersHTML(): string {
         
         async function loadUsers() {
             try {
-                const response = await fetch('/dev/users');
+                const response = await fetch('/admin/users', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
                 const data = await response.json();
-                if (data.success) {
+                if (data.users) {
                     displayUsers(data.users);
+                } else if (data.error) {
+                    console.error('Failed to load users:', data.error);
+                    document.getElementById('users-tbody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Failed to load users: ' + data.error + '</td></tr>';
+                } else {
+                    console.error('Unexpected response format:', data);
+                    document.getElementById('users-tbody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Failed to load users</td></tr>';
                 }
             } catch (error) {
                 console.error('Failed to load users:', error);
@@ -186,7 +196,7 @@ export function getAdminUsersHTML(): string {
             };
             
             try {
-                const response = await fetch('/auth/register', {
+                const response = await fetch('/admin/users', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -215,7 +225,7 @@ export function getAdminUsersHTML(): string {
             }
             
             try {
-                const response = await fetch('/users/' + encodeURIComponent(email), {
+                const response = await fetch('/admin/users/' + encodeURIComponent(email), {
                     method: 'DELETE',
                     headers: {
                         'Authorization': 'Bearer ' + token

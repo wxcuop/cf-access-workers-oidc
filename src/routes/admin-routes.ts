@@ -1,18 +1,19 @@
 import { Router } from 'itty-router'
-import { handleAuth } from '../handlers/auth-handlers'
+import { handleAdminRequest } from '../handlers/admin-handlers'
 
 export function adminRoutes(router: Router<any>) {
-  // User and group management endpoints
-  router.get('/users', handleAuth)
-  router.post('/users', handleAuth)
-  router.get('/users/:id', handleAuth)
-  router.put('/users/:id', handleAuth)
-  router.delete('/users/:id', handleAuth)
-  router.get('/groups', handleAuth)
-  router.post('/groups', handleAuth)
-  router.get('/groups/:name', handleAuth)
-  router.put('/groups/:name', handleAuth)
-  router.delete('/groups/:name', handleAuth)
-  router.post('/groups/:name/members', handleAuth)
-  router.delete('/groups/:name/members/:email', handleAuth)
+  // User management endpoints
+  router.get('/admin/users', handleAdminRequest)
+  router.post('/admin/users', handleAdminRequest)
+  router.put('/admin/users/:email', handleAdminRequest)
+  router.delete('/admin/users/:email', handleAdminRequest)
+  router.post('/admin/users/:email/groups', handleAdminRequest)
+  router.delete('/admin/users/:email/groups/:groupName', handleAdminRequest)
+  
+  // Group management endpoints
+  router.get('/admin/groups', handleAdminRequest)
+  router.post('/admin/groups', handleAdminRequest)
+  router.put('/admin/groups/:groupName', handleAdminRequest)
+  router.delete('/admin/groups/:groupName', handleAdminRequest)
+  router.get('/admin/groups/:groupName/users', handleAdminRequest)
 }

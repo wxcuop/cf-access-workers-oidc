@@ -281,7 +281,7 @@ export class UserService {
     const { email, name, password, groups } = await request.json()
 
     if (!email || !name || !password) {
-      return new Response('Email, name, and password are required', { status: 400 })
+      return getResponse({ error: 'Email, name, and password are required' }, 400)
     }
 
     try {
@@ -291,18 +291,18 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'User already exists') {
-          return new Response(error.message, { status: 409 })
+          return getResponse({ error: error.message }, 409)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ error: 'Internal server error' }, 500)
     }
   }
 
   async handleUpdateUser(request: any): Promise<Response> {
     const email = decodeURIComponent(request.url.split('/').pop() || '')
     if (!email) {
-      return new Response('Email required', { status: 400 })
+      return getResponse({ error: 'Email required' }, 400)
     }
 
     const { name, groups, status } = await request.json()
@@ -314,18 +314,18 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'User not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ error: 'Internal server error' }, 500)
     }
   }
 
   async handleDeleteUser(request: any): Promise<Response> {
     const email = decodeURIComponent(request.url.split('/').pop() || '')
     if (!email) {
-      return new Response('Email required', { status: 400 })
+      return getResponse({ error: 'Email required' }, 400)
     }
 
     try {
@@ -334,18 +334,18 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'User not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ error: 'Internal server error' }, 500)
     }
   }
 
   async handleAssignUserGroups(request: any): Promise<Response> {
     const email = decodeURIComponent(request.url.split('/')[request.url.split('/').length - 2])
     if (!email) {
-      return new Response('Email required', { status: 400 })
+      return getResponse({ success: false, error: 'Email required' }, 400)
     }
 
     const { groups } = await request.json()
@@ -357,11 +357,11 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'User not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ success: false, error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 
@@ -371,7 +371,7 @@ export class UserService {
     const groupName = urlParts[urlParts.length - 1]
 
     if (!email || !groupName) {
-      return new Response('Email and group name required', { status: 400 })
+      return getResponse({ success: false, error: 'Email and group name required' }, 400)
     }
 
     try {
@@ -381,11 +381,11 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'User not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ success: false, error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 }

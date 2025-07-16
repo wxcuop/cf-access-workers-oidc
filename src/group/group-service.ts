@@ -183,18 +183,18 @@ export class GroupService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Group already exists') {
-          return new Response(error.message, { status: 409 })
+          return getResponse({ success: false, error: error.message }, 409)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 
   async handleUpdateGroup(request: any): Promise<Response> {
     const groupName = request.url.split('/').pop()
     if (!groupName) {
-      return new Response('Group name required', { status: 400 })
+      return getResponse({ success: false, error: 'Group name required' }, 400)
     }
 
     const { description } = await request.json()
@@ -205,18 +205,18 @@ export class GroupService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Group not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ success: false, error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 
   async handleDeleteGroup(request: any): Promise<Response> {
     const groupName = request.url.split('/').pop()
     if (!groupName) {
-      return new Response('Group name required', { status: 400 })
+      return getResponse({ success: false, error: 'Group name required' }, 400)
     }
 
     try {
@@ -225,18 +225,18 @@ export class GroupService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Group not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ success: false, error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 
   async handleGetGroupUsers(request: any): Promise<Response> {
     const groupName = request.url.split('/')[request.url.split('/').length - 2]
     if (!groupName) {
-      return new Response('Group name required', { status: 400 })
+      return getResponse({ success: false, error: 'Group name required' }, 400)
     }
 
     try {
@@ -245,11 +245,11 @@ export class GroupService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'Group not found') {
-          return new Response(error.message, { status: 404 })
+          return getResponse({ success: false, error: error.message }, 404)
         }
-        return new Response(error.message, { status: 400 })
+        return getResponse({ success: false, error: error.message }, 400)
       }
-      return new Response('Internal server error', { status: 500 })
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
 }
