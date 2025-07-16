@@ -7,6 +7,7 @@ import { generateUUID, checkRateLimit, isValidEmail, validatePassword } from '..
 import { JWTService } from '../oidc/jwt-service'
 import { UserService } from '../user/user-service'
 import { StorageService } from '../storage/storage-service'
+import { GroupService } from '../group/group-service'
 
 export class AuthService {
   private users: Map<string, User>
@@ -16,6 +17,7 @@ export class AuthService {
   private jwtService: JWTService
   private userService: UserService
   private storageService: StorageService
+  private groupService: GroupService
   private emailService: EmailService
   private accessTokenTtl: number
 
@@ -27,6 +29,7 @@ export class AuthService {
     jwtService: JWTService,
     userService: UserService,
     storageService: StorageService,
+    groupService: GroupService,
     emailService: EmailService,
     accessTokenTtl: number
   ) {
@@ -37,6 +40,7 @@ export class AuthService {
     this.jwtService = jwtService
     this.userService = userService
     this.storageService = storageService
+    this.groupService = groupService
     this.emailService = emailService
     this.accessTokenTtl = accessTokenTtl
   }
@@ -579,6 +583,57 @@ export class AuthService {
     }
   }
 
+  /**
+   * Development: Get all users for debugging
+   */
+  async getDevUsers(): Promise<any> {
+    const users = Array.from(this.users.values()).map(u => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      groups: u.groups,
+      status: u.status,
+      created_at: u.created_at,
+      last_login: u.last_login,
+      hasPassword: !!u.passwordHash
+    }))
+    
+    return {
+      success: true,
+      users,
+      count: users.length
+    }
+  }
+
+  /**
+   * Get all groups for development debugging
+   */
+  async handleGetDevGroups(request: any): Promise<Response> {
+    try {
+      const groups = this.groupService.getGroups()
+      
+      return new Response(JSON.stringify({
+        success: true,
+        groups: groups.map(group => ({
+          name: group.name,
+          description: group.description,
+          user_count: group.user_count,
+          is_system: group.is_system,
+          created: group.created_at,
+          updated: group.updated_at
+        }))
+      }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to get groups'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
   async handleGetResetTokens(request: any): Promise<Response> {
     // WARNING: This is for development only!
     // In production, remove this endpoint or add proper authentication
@@ -594,6 +649,98 @@ export class AuthService {
       return new Response(JSON.stringify({
         success: false,
         error: 'Failed to retrieve reset tokens'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  async handleGetDevUsers(request: any): Promise<Response> {
+    // WARNING: This is for development only!
+    // In production, remove this endpoint or add proper authentication
+    try {
+      const result = await this.getDevUsers()
+      
+      return new Response(JSON.stringify(result), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to retrieve users'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  async handleInitAdmin(request: any): Promise<Response> {
+    // WARNING: This is for development only!
+    // Force creates admin users regardless of existing users
+    try {
+      const { generateUUID, hashPassword } = await import('../security/security-utils')
+      
+      const defaultAdminUsers = [
+        {
+          email: 'admin@example.com',
+          password: 'admin123',
+          name: 'System Administrator',
+          groups: ['admin']
+        },
+        {
+          email: 'admin2@example.com',
+          password: 'admin123',
+          name: 'Administrator',
+          groups: ['admin']
+        },
+        {
+          email: 'manager@example.com',
+          password: 'manager123',
+          name: 'Manager',
+          groups: ['manager']
+        }
+      ]
+
+      const createdUsers = []
+      for (const userData of defaultAdminUsers) {
+        // Check if user already exists
+        if (this.users.has(userData.email)) {
+          continue
+        }
+        
+        const user = {
+          id: generateUUID(),
+          email: userData.email,
+          name: userData.name,
+          passwordHash: await hashPassword(userData.password),
+          groups: userData.groups,
+          status: 'active' as const,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+          last_login: undefined
+        }
+        
+        this.users.set(user.email, user)
+        await this.storageService.saveUser(user.email, user)
+        createdUsers.push({
+          email: user.email,
+          name: user.name,
+          groups: user.groups
+        })
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Admin users initialized',
+        created: createdUsers,
+        count: createdUsers.length
+      }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to initialize admin users'
       }), { status: 500, headers: { 'Content-Type': 'application/json' } })
     }
   }

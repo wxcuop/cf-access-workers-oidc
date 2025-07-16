@@ -44,6 +44,53 @@ export class StorageService {
     if (this.groups.size === 0) {
       await this.groupService.initializeDefaultGroups()
     }
+
+    // Initialize default admin users if none exist
+    if (this.users.size === 0) {
+      await this.initializeDefaultUsers()
+    }
+  }
+
+  private async initializeDefaultUsers(): Promise<void> {
+    const { generateUUID, hashPassword } = await import('../security/security-utils')
+    
+    const defaultUsers = [
+      {
+        email: 'admin@example.com',
+        password: 'admin123',
+        name: 'System Administrator',
+        groups: ['admin']
+      },
+      {
+        email: 'admin2@example.com',
+        password: 'admin123',
+        name: 'Administrator',
+        groups: ['admin']
+      },
+      {
+        email: 'manager@example.com',
+        password: 'manager123',
+        name: 'Manager',
+        groups: ['manager']
+      }
+    ]
+
+    for (const userData of defaultUsers) {
+      const user = {
+        id: generateUUID(),
+        email: userData.email,
+        name: userData.name,
+        passwordHash: await hashPassword(userData.password),
+        groups: userData.groups,
+        status: 'active' as const,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        last_login: undefined
+      }
+      
+      this.users.set(user.email, user)
+      await this.storage.put(`user:${user.email}`, user)
+    }
   }
 
   async saveUser(email: string, user: User): Promise<void> {

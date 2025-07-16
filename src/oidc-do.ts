@@ -174,6 +174,7 @@ export class OpenIDConnectDurableObject {
       this.jwtService,
       this.userService,
       this.storageService,
+      this.groupService,
       this.emailService,
       this.accessTokenTtl
     )
@@ -199,6 +200,9 @@ export class OpenIDConnectDurableObject {
     // Development endpoints (remove in production)
     router.get('/dev/reset-tokens', req => this.handleAuthRequest(req, 'getResetTokens'))
     router.get('/dev/debug-token/:token', req => this.handleAuthRequest(req, 'debugToken'))
+    router.get('/dev/users', req => this.handleAuthRequest(req, 'getDevUsers'))
+    router.get('/dev/groups', req => this.handleAuthRequest(req, 'getDevGroups'))
+    router.post('/dev/init-admin', req => this.handleAuthRequest(req, 'initAdmin'))
 
     // Admin endpoints - Group management
     router.get('/admin/groups', req => this.handleAdminRequest(req, 'getGroups'))
@@ -250,6 +254,12 @@ export class OpenIDConnectDurableObject {
           return await this.authService.handleResetPassword(request)
         case 'getResetTokens':
           return await this.authService.handleGetResetTokens(request)
+        case 'getDevUsers':
+          return await this.authService.handleGetDevUsers(request)
+        case 'getDevGroups':
+          return await this.authService.handleGetDevGroups(request)
+        case 'initAdmin':
+          return await this.authService.handleInitAdmin(request)
         default:
           return getResponse({ error: 'Unknown authentication action' }, 400)
       }
