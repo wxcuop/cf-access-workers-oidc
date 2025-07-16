@@ -4,28 +4,7 @@ export function getAdminGroupsHTML(): string {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <        async function loadGroups() {
-            try {
-                const response = await fetch('/admin/groups', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                const data = await response.json();
-                if (data.groups) {
-                    displayGroups(data.groups);
-                } else if (data.error) {
-                    console.error('Failed to load groups:', data.error);
-                    document.getElementById('groups-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Failed to load groups: ' + data.error + '</td></tr>';
-                } else {
-                    console.error('Unexpected response format:', data);
-                    document.getElementById('groups-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Failed to load groups</td></tr>';
-                }
-            } catch (error) {
-                console.error('Failed to load groups:', error);
-                document.getElementById('groups-tbody').innerHTML = '<tr><td colspan="4" style="text-align: center;">Failed to load groups</td></tr>';
-            }
-        }iewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Group Management - OIDC System</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
@@ -151,10 +130,20 @@ export function getAdminGroupsHTML(): string {
         
         async function loadGroups() {
             try {
-                const response = await fetch('/dev/groups');
+                const response = await fetch('/admin/groups', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
                 const data = await response.json();
-                if (data.success) {
+                if (data.groups) {
                     displayGroups(data.groups);
+                } else if (data.error) {
+                    console.error('Failed to load groups:', data.error);
+                    document.getElementById('groups-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center;">Failed to load groups: ' + data.error + '</td></tr>';
+                } else {
+                    console.error('Unexpected response format:', data);
+                    document.getElementById('groups-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center;">Failed to load groups</td></tr>';
                 }
             } catch (error) {
                 console.error('Failed to load groups:', error);
