@@ -9,6 +9,7 @@ export function adminRoutes(router: Router<any>) {
   router.delete('/admin/users/:email', handleAdminRequest)
   router.post('/admin/users/:email/groups', handleAdminRequest)
   router.delete('/admin/users/:email/groups/:groupName', handleAdminRequest)
+  router.put('/admin/users/:email/groups', handleAdminRequest)
   
   // Group management endpoints
   router.get('/admin/groups', handleAdminRequest)
@@ -16,4 +17,6 @@ export function adminRoutes(router: Router<any>) {
   router.put('/admin/groups/:groupName', handleAdminRequest)
   router.delete('/admin/groups/:groupName', handleAdminRequest)
   router.get('/admin/groups/:groupName/users', handleAdminRequest)
+  router.post('/admin/groups/:groupName/users', handleAdminRequest)
+  router.delete('/admin/groups/:groupName/users/:email', handleAdminRequest)
 }

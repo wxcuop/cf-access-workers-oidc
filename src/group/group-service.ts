@@ -252,4 +252,86 @@ export class GroupService {
       return getResponse({ success: false, error: 'Internal server error' }, 500)
     }
   }
+
+  async handleAddUserToGroup(request: any): Promise<Response> {
+    const groupName = request.url.split('/')[request.url.split('/').length - 2]
+    if (!groupName) {
+      return getResponse({ success: false, error: 'Group name required' }, 400)
+    }
+
+    const { email } = await request.json()
+    if (!email) {
+      return getResponse({ success: false, error: 'Email required' }, 400)
+    }
+
+    try {
+      const group = this.groups.get(groupName)
+      if (!group) {
+        return getResponse({ success: false, error: 'Group not found' }, 404)
+      }
+
+      const user = this.users.get(email)
+      if (!user) {
+        return getResponse({ success: false, error: 'User not found' }, 404)
+      }
+
+      if (!user.groups.includes(groupName)) {
+        user.groups.push(groupName)
+        user.updated_at = Date.now()
+        await this.storage.put(`user:${email}`, user)
+
+        // Update group user count
+        group.user_count = (group.user_count || 0) + 1
+        group.updated_at = Date.now()
+        await this.storage.put(`group:${groupName}`, group)
+      }
+
+      return getResponse({ success: true, group })
+    } catch (error) {
+      if (error instanceof Error) {
+        return getResponse({ success: false, error: error.message }, 400)
+      }
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
+    }
+  }
+
+  async handleRemoveUserFromGroup(request: any): Promise<Response> {
+    const urlParts = request.url.split('/')
+    const groupName = urlParts[urlParts.length - 3]
+    const email = decodeURIComponent(urlParts[urlParts.length - 1])
+
+    if (!groupName || !email) {
+      return getResponse({ success: false, error: 'Group name and email required' }, 400)
+    }
+
+    try {
+      const group = this.groups.get(groupName)
+      if (!group) {
+        return getResponse({ success: false, error: 'Group not found' }, 404)
+      }
+
+      const user = this.users.get(email)
+      if (!user) {
+        return getResponse({ success: false, error: 'User not found' }, 404)
+      }
+
+      if (user.groups.includes(groupName)) {
+        user.groups = user.groups.filter(g => g !== groupName)
+        user.updated_at = Date.now()
+        await this.storage.put(`user:${email}`, user)
+
+        // Update group user count
+        group.user_count = Math.max(0, (group.user_count || 0) - 1)
+        group.updated_at = Date.now()
+        await this.storage.put(`group:${groupName}`, group)
+      }
+
+      return getResponse({ success: true, group })
+    } catch (error) {
+      if (error instanceof Error) {
+        return getResponse({ success: false, error: error.message }, 400)
+      }
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
+    }
+  }
 }

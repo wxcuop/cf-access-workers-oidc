@@ -37,7 +37,12 @@ export class StorageService {
     const userEntries = await this.storage.list({ prefix: 'user:' })
     userEntries.forEach((user, key) => {
       const userEmail = key.replace('user:', '')
-      this.users.set(userEmail, user as User)
+      const userData = user as User
+      // Ensure groups is always an array
+      if (!Array.isArray(userData.groups)) {
+        userData.groups = []
+      }
+      this.users.set(userEmail, userData)
     })
 
     // Initialize default groups if none exist

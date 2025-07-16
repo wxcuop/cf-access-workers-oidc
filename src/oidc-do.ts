@@ -210,6 +210,8 @@ export class OpenIDConnectDurableObject {
     router.put('/admin/groups/:groupName', req => this.handleAdminRequest(req, 'updateGroup'))
     router.delete('/admin/groups/:groupName', req => this.handleAdminRequest(req, 'deleteGroup'))
     router.get('/admin/groups/:groupName/users', req => this.handleAdminRequest(req, 'getGroupUsers'))
+    router.post('/admin/groups/:groupName/users', req => this.handleAdminRequest(req, 'addUserToGroup'))
+    router.delete('/admin/groups/:groupName/users/:email', req => this.handleAdminRequest(req, 'removeUserFromGroup'))
 
     // Admin endpoints - User management
     router.get('/admin/users', req => this.handleAdminRequest(req, 'getUsers'))
@@ -219,6 +221,7 @@ export class OpenIDConnectDurableObject {
 
     // Admin endpoints - User group assignments
     router.post('/admin/users/:email/groups', req => this.handleAdminRequest(req, 'assignUserGroups'))
+    router.put('/admin/users/:email/groups', req => this.handleAdminRequest(req, 'updateUserGroups'))
     router.delete('/admin/users/:email/groups/:groupName', req => this.handleAdminRequest(req, 'removeUserFromGroup'))
 
     // Default route
@@ -290,6 +293,15 @@ export class OpenIDConnectDurableObject {
           return await this.groupService.handleDeleteGroup(request)
         case 'getGroupUsers':
           return await this.groupService.handleGetGroupUsers(request)
+        case 'addUserToGroup':
+          return await this.groupService.handleAddUserToGroup(request)
+        case 'removeUserFromGroup':
+          // Check if this is a group-centric or user-centric operation
+          if (request.url.includes('/admin/groups/')) {
+            return await this.groupService.handleRemoveUserFromGroup(request)
+          } else {
+            return await this.userService.handleRemoveUserFromGroup(request)
+          }
         
         // User management
         case 'getUsers':
@@ -304,8 +316,10 @@ export class OpenIDConnectDurableObject {
         // User group assignments
         case 'assignUserGroups':
           return await this.userService.handleAssignUserGroups(request)
-        case 'removeUserFromGroup':
-          return await this.userService.handleRemoveUserFromGroup(request)
+        case 'updateUserGroups':
+          return await this.userService.handleUpdateUserGroups(request)
+        case 'addUserToGroupFromUser':
+          return await this.userService.handleAddUserToGroup(request)
         
         default:
           return getResponse({ error: 'Unknown admin action' }, 400)

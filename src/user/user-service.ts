@@ -188,7 +188,7 @@ export class UserService {
       id: user.id,
       email: user.email,
       name: user.name,
-      groups: user.groups,
+      groups: Array.isArray(user.groups) ? user.groups : [],
       created_at: user.created_at,
       last_login: user.last_login,
       status: user.status,
@@ -212,17 +212,20 @@ export class UserService {
 
     // Return user without password hash
     const { passwordHash, ...safeUser } = user
-    return safeUser
+    return {
+      ...safeUser,
+      groups: Array.isArray(user.groups) ? user.groups : []
+    }
   }
 
   getUsersInGroup(groupName: string): Array<Omit<User, 'passwordHash'>> {
     return Array.from(this.users.values())
-      .filter(user => user.groups.includes(groupName))
+      .filter(user => Array.isArray(user.groups) && user.groups.includes(groupName))
       .map(user => ({
         id: user.id,
         email: user.email,
         name: user.name,
-        groups: user.groups,
+        groups: Array.isArray(user.groups) ? user.groups : [],
         status: user.status,
         last_login: user.last_login,
         created_at: user.created_at,
@@ -241,6 +244,11 @@ export class UserService {
       if (!this.groups.has(groupName)) {
         throw new Error(`Group '${groupName}' does not exist`)
       }
+    }
+
+    // Ensure user.groups is an array
+    if (!Array.isArray(user.groups)) {
+      user.groups = []
     }
 
     user.groups = groups
@@ -383,6 +391,74 @@ export class UserService {
         if (error.message === 'User not found') {
           return getResponse({ success: false, error: error.message }, 404)
         }
+        return getResponse({ success: false, error: error.message }, 400)
+      }
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
+    }
+  }
+
+  async handleUpdateUserGroups(request: any): Promise<Response> {
+    const email = decodeURIComponent(request.url.split('/')[request.url.split('/').length - 2])
+    if (!email) {
+      return getResponse({ success: false, error: 'Email required' }, 400)
+    }
+
+    const { groups } = await request.json()
+    if (!Array.isArray(groups)) {
+      return getResponse({ success: false, error: 'Groups must be an array' }, 400)
+    }
+
+    try {
+      const user = await this.assignUserToGroups(email, groups)
+      const { passwordHash, ...safeUser } = user
+      return getResponse({ success: true, user: safeUser })
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'User not found') {
+          return getResponse({ success: false, error: error.message }, 404)
+        }
+        return getResponse({ success: false, error: error.message }, 400)
+      }
+      return getResponse({ success: false, error: 'Internal server error' }, 500)
+    }
+  }
+
+  async handleAddUserToGroup(request: any): Promise<Response> {
+    const email = decodeURIComponent(request.url.split('/')[request.url.split('/').length - 2])
+    if (!email) {
+      return getResponse({ success: false, error: 'Email required' }, 400)
+    }
+
+    const { groupName } = await request.json()
+    if (!groupName) {
+      return getResponse({ success: false, error: 'Group name required' }, 400)
+    }
+
+    try {
+      const user = this.users.get(email)
+      if (!user) {
+        return getResponse({ success: false, error: 'User not found' }, 404)
+      }
+
+      if (!this.groups.has(groupName)) {
+        return getResponse({ success: false, error: 'Group not found' }, 404)
+      }
+
+      // Ensure user.groups is an array
+      if (!Array.isArray(user.groups)) {
+        user.groups = []
+      }
+
+      if (!user.groups.includes(groupName)) {
+        user.groups.push(groupName)
+        user.updated_at = Date.now()
+        await this.storage.put(`user:${email}`, user)
+      }
+
+      const { passwordHash, ...safeUser } = user
+      return getResponse({ success: true, user: safeUser })
+    } catch (error) {
+      if (error instanceof Error) {
         return getResponse({ success: false, error: error.message }, 400)
       }
       return getResponse({ success: false, error: 'Internal server error' }, 500)
