@@ -1,6 +1,9 @@
 import { getAdminDashboardHTML as getDashboard } from './admin-dashboard'
 import { getAdminUsersHTML as getUsers } from './admin-users'
 import { getAdminGroupsHTML as getGroups } from './admin-groups'
+import { getEnhancedUsersHTML as getEnhancedUsers } from './admin-enhanced-users'
+import { getEnhancedGroupsHTML as getEnhancedGroups } from './admin-enhanced-groups'
+import { getEnhancedDemoHTML as getEnhancedDemo } from './admin-enhanced-demo'
 
 export function getAdminLoginHTML(): string {
   return `
@@ -85,8 +88,20 @@ export function getAdminUsersHTML(): string {
   return getUsers()
 }
 
+export function getEnhancedUsersHTML(): string {
+  return getEnhancedUsers()
+}
+
 export function getAdminGroupsHTML(): string {
   return getGroups()
+}
+
+export function getEnhancedGroupsHTML(): string {
+  return getEnhancedGroups()
+}
+
+export function getEnhancedDemoHTML(): string {
+  return getEnhancedDemo()
 }
 
 export function getAdminCSS(): string {

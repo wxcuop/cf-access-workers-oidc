@@ -5,6 +5,9 @@ import {
   getAdminDashboardHTML, 
   getAdminUsersHTML, 
   getAdminGroupsHTML, 
+  getEnhancedUsersHTML,
+  getEnhancedGroupsHTML,
+  getEnhancedDemoHTML,
   getAdminCSS, 
   getAdminJS 
 } from '../frontend/admin-templates'
@@ -46,39 +49,49 @@ export async function handleSigninFiles(req: any, env: Env): Promise<Response> {
 async function serveAdminFile(filePath: string, req: any, env: Env): Promise<Response> {
   const corsHeaders = getCorsHeaders(getAllowedOrigin(req, '*'), [])
   
+  // Enhanced admin HTML files
   if (filePath === 'login.html') {
     return new Response(getAdminLoginHTML(), {
       headers: { ...corsHeaders, 'content-type': 'text/html' }
     })
   }
-  
   if (filePath === 'dashboard.html' || filePath === 'index.html' || filePath === '') {
     return new Response(getAdminDashboardHTML(), {
       headers: { ...corsHeaders, 'content-type': 'text/html' }
     })
   }
-  
-  if (filePath === 'users.html') {
-    return new Response(getAdminUsersHTML(), {
+  if (filePath === 'users.html' || filePath === 'users-enhanced.html') {
+    return new Response(getEnhancedUsersHTML(), {
       headers: { ...corsHeaders, 'content-type': 'text/html' }
     })
   }
-  
-  if (filePath === 'groups.html') {
-    return new Response(getAdminGroupsHTML(), {
+  if (filePath === 'groups.html' || filePath === 'groups-enhanced.html') {
+    return new Response(getEnhancedGroupsHTML(), {
       headers: { ...corsHeaders, 'content-type': 'text/html' }
     })
   }
-  
+  if (filePath === 'demo.html') {
+    return new Response(getEnhancedDemoHTML(), {
+      headers: { ...corsHeaders, 'content-type': 'text/html' }
+    })
+  }
+  // CSS
   if (filePath.endsWith('.css')) {
     return new Response(getAdminCSS(), {
       headers: { ...corsHeaders, 'content-type': 'text/css' }
     })
   }
-  
+  // JS
   if (filePath.endsWith('.js')) {
     return new Response(getAdminJS(filePath), {
       headers: { ...corsHeaders, 'content-type': 'application/javascript' }
+    })
+  }
+  // Components and other files
+  if (filePath.startsWith('components/')) {
+    // Return empty HTML for component requests since they're inline in enhanced pages
+    return new Response('<!-- Component served inline -->', {
+      headers: { ...corsHeaders, 'content-type': 'text/html' }
     })
   }
   
