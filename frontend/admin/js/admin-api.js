@@ -286,6 +286,82 @@ class AdminAPI {
     }
 
     /**
+     * User-Group Relationship Management
+     */
+    async addUserToGroup(userEmail, groups) {
+        try {
+            const response = await this.request(`/admin/users/${encodeURIComponent(userEmail)}/groups`, {
+                method: 'POST',
+                body: JSON.stringify({ groups })
+            });
+            return response;
+        } catch (error) {
+            console.error('Add user to group API call failed:', error);
+            throw error;
+        }
+    }
+
+    async removeUserFromGroup(userEmail, groupName) {
+        try {
+            const response = await this.request(`/admin/users/${encodeURIComponent(userEmail)}/groups/${encodeURIComponent(groupName)}`, {
+                method: 'DELETE'
+            });
+            return response;
+        } catch (error) {
+            console.error('Remove user from group API call failed:', error);
+            throw error;
+        }
+    }
+
+    async updateUserGroups(userEmail, groups) {
+        try {
+            const response = await this.request(`/admin/users/${encodeURIComponent(userEmail)}/groups`, {
+                method: 'PUT',
+                body: JSON.stringify({ groups })
+            });
+            return response;
+        } catch (error) {
+            console.error('Update user groups API call failed:', error);
+            throw error;
+        }
+    }
+
+    async addUserToGroupFromGroup(groupName, userEmail) {
+        try {
+            const response = await this.request(`/admin/groups/${encodeURIComponent(groupName)}/users`, {
+                method: 'POST',
+                body: JSON.stringify({ email: userEmail })
+            });
+            return response;
+        } catch (error) {
+            console.error('Add user to group (from group) API call failed:', error);
+            throw error;
+        }
+    }
+
+    async removeUserFromGroupFromGroup(groupName, userEmail) {
+        try {
+            const response = await this.request(`/admin/groups/${encodeURIComponent(groupName)}/users/${encodeURIComponent(userEmail)}`, {
+                method: 'DELETE'
+            });
+            return response;
+        } catch (error) {
+            console.error('Remove user from group (from group) API call failed:', error);
+            throw error;
+        }
+    }
+
+    async getGroupUsers(groupName) {
+        try {
+            const response = await this.request(`/admin/groups/${encodeURIComponent(groupName)}/users`);
+            return response;
+        } catch (error) {
+            console.error('Get group users API call failed:', error);
+            throw error;
+        }
+    }
+
+    /**
      * System API calls
      */
     async getSystemHealth() {

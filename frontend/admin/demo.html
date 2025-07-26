@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User-Group Management Demo | OIDC Admin</title>
+    <link rel="stylesheet" href="css/admin-clean.css">
+    <link rel="stylesheet" href="css/user-group-management.css">
+    <style>
+        .demo-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-white);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-gray-600);
+        }
+        
+        .demo-section {
+            margin-bottom: 3rem;
+        }
+        
+        .demo-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-gray-900);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .demo-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .demo-link-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-gray-200);
+            border-radius: 0.5rem;
+            background: var(--bg-gray-50);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .demo-link-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-white);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-link-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .demo-link-description {
+            color: var(--text-gray-600);
+            line-height: 1.5;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-gray-50);
+            border-radius: 0.375rem;
+        }
+        
+        .feature-icon {
+            font-size: 1.25rem;
+        }
+        
+        .feature-text {
+            font-weight: 500;
+            color: var(--text-gray-700);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">🎯 User-Group Management System</h1>
+            <p class="demo-subtitle">Enhanced admin interface with comprehensive user-group relationship management</p>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-section-title">🚀 Phase 2 Implementation Complete</h2>
+            <p>The frontend UI for user-group management has been successfully implemented with the following enhancements:</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">👥</span>
+                    <span class="feature-text">Interactive Group Management</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✏️</span>
+                    <span class="feature-text">Edit User Groups</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔍</span>
+                    <span class="feature-text">Real-time Search</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <span class="feature-text">Quick Actions</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <span class="feature-text">Responsive Design</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔔</span>
+                    <span class="feature-text">Live Notifications</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-section-title">🖥️ Enhanced Admin Pages</h2>
+            <p>Access the new enhanced admin interfaces with full user-group management capabilities:</p>
+            
+            <div class="demo-links">
+                <a href="users-enhanced.html" class="demo-link-card">
+                    <div class="demo-link-title">
+                        <span>👥</span>
+                        Enhanced User Management
+                    </div>
+                    <div class="demo-link-description">
+                        Manage users with advanced group assignment features. Includes real-time group editing, bulk actions, and comprehensive user filtering.
+                    </div>
+                </a>
+                
+                <a href="groups-enhanced.html" class="demo-link-card">
+                    <div class="demo-link-title">
+                        <span>🔐</span>
+                        Enhanced Group Management
+                    </div>
+                    <div class="demo-link-description">
+                        Manage groups with user membership controls. Add/remove users from groups with intuitive drag-and-drop interface and live updates.
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-section-title">🔧 Backend API Endpoints</h2>
+            <p>The following REST API endpoints are now available for user-group management:</p>
+            
+            <div class="api-endpoints" style="background: var(--bg-gray-900); color: var(--text-white); padding: 1.5rem; border-radius: 0.5rem; margin-top: 1rem; font-family: monospace;">
+                <div style="margin-bottom: 1rem; color: #10b981;">🔹 User-centric operations:</div>
+                <div>POST   /admin/users/{email}/groups</div>
+                <div>PUT    /admin/users/{email}/groups</div>
+                <div>DELETE /admin/users/{email}/groups/{groupName}</div>
+                <br>
+                <div style="margin-bottom: 1rem; color: #10b981;">🔹 Group-centric operations:</div>
+                <div>POST   /admin/groups/{groupName}/users</div>
+                <div>DELETE /admin/groups/{groupName}/users/{email}</div>
+                <div>GET    /admin/groups/{groupName}/users</div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-section-title">✨ Key Features</h2>
+            
+            <div style="display: grid; gap: 1.5rem; margin-top: 1.5rem;">
+                <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-gray-200); border-radius: 0.5rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🎯 Real-time Group Management</h3>
+                    <p>Users can be instantly added to or removed from groups with immediate visual feedback and notifications.</p>
+                </div>
+                
+                <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-gray-200); border-radius: 0.5rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🔍 Advanced Search & Filtering</h3>
+                    <p>Search users by name, email, or group membership. Filter by status, group type, and more.</p>
+                </div>
+                
+                <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-gray-200); border-radius: 0.5rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">⚡ Quick Actions</h3>
+                    <p>Bulk select/deselect groups, system groups only, and other power-user features for efficient management.</p>
+                </div>
+                
+                <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-gray-200); border-radius: 0.5rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🔒 System Group Protection</h3>
+                    <p>System groups are clearly marked and protected with appropriate safeguards and visual indicators.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

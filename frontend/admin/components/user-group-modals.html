@@ -1,0 +1,130 @@
+<!-- User Groups Management Modal -->
+<div class="modal" id="userGroupsModal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3 class="modal-title" id="userGroupsModalTitle">Manage User Groups</h3>
+            <button class="modal-close" onclick="closeUserGroupsModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="user-info">
+                <div class="user-info-item">
+                    <span class="info-label">User:</span>
+                    <span class="info-value" id="userGroupsModalEmail">user@example.com</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h4 class="section-title">Available Groups</h4>
+                <div class="groups-grid" id="userGroupsCheckboxes">
+                    <!-- Groups will be populated dynamically -->
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h4 class="section-title">Quick Actions</h4>
+                <div class="quick-action-buttons">
+                    <button class="btn btn-sm btn-outline" onclick="selectAllGroups()">
+                        <span class="btn-icon">☑️</span>
+                        Select All
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="deselectAllGroups()">
+                        <span class="btn-icon">☐</span>
+                        Deselect All
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="selectSystemGroups()">
+                        <span class="btn-icon">🔒</span>
+                        System Groups Only
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeUserGroupsModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveUserGroups()">
+                <span class="btn-icon">💾</span>
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Group Management Modal for Groups Page -->
+<div class="modal" id="groupUsersModal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3 class="modal-title" id="groupUsersModalTitle">Manage Group Users</h3>
+            <button class="modal-close" onclick="closeGroupUsersModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="group-info">
+                <div class="group-info-item">
+                    <span class="info-label">Group:</span>
+                    <span class="info-value" id="groupUsersModalName">group-name</span>
+                </div>
+                <div class="group-info-item">
+                    <span class="info-label">Description:</span>
+                    <span class="info-value" id="groupUsersModalDescription">Group description</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h4 class="section-title">Available Users</h4>
+                <div class="search-box-modal">
+                    <input type="text" id="groupUsersSearch" placeholder="Search users..." class="search-input">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="users-grid" id="groupUsersCheckboxes">
+                    <!-- Users will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeGroupUsersModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveGroupUsers()">
+                <span class="btn-icon">💾</span>
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Action Modal -->
+<div class="modal" id="bulkActionModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="bulkActionModalTitle">Bulk Action</h3>
+            <button class="modal-close" onclick="closeBulkActionModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="bulk-action-info">
+                <p id="bulkActionDescription">Select an action to perform on selected items.</p>
+            </div>
+            
+            <div class="action-selection">
+                <div class="action-option">
+                    <input type="radio" id="bulkAddToGroup" name="bulkAction" value="addToGroup">
+                    <label for="bulkAddToGroup">Add to Group</label>
+                </div>
+                <div class="action-option">
+                    <input type="radio" id="bulkRemoveFromGroup" name="bulkAction" value="removeFromGroup">
+                    <label for="bulkRemoveFromGroup">Remove from Group</label>
+                </div>
+                <div class="action-option">
+                    <input type="radio" id="bulkChangeStatus" name="bulkAction" value="changeStatus">
+                    <label for="bulkChangeStatus">Change Status</label>
+                </div>
+            </div>
+            
+            <div class="action-params" id="bulkActionParams">
+                <!-- Dynamic parameters based on selected action -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeBulkActionModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="executeBulkAction()">
+                <span class="btn-icon">⚡</span>
+                Execute Action
+            </button>
+        </div>
+    </div>
+</div>

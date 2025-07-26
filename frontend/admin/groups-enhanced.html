@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Management | OIDC Authentication System</title>
+    <link rel="stylesheet" href="css/admin-clean.css">
+    <link rel="stylesheet" href="css/user-group-management.css">
+    <link rel="icon" href="../signin/assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="../signin/assets/logo.svg" alt="Logo" class="sidebar-logo">
+                <h1 class="sidebar-title">Admin</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users-enhanced.html" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-label">Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="groups-enhanced.html" class="nav-link">
+                            <span class="nav-icon">🔐</span>
+                            <span class="nav-label">Groups</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span class="nav-label">Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="logs.html" class="nav-link">
+                            <span class="nav-icon">📝</span>
+                            <span class="nav-label">Activity Logs</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-link logout-link logout-btn">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-label">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-content">
+            <!-- Top Header -->
+            <header class="admin-header">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="header-title">
+                    <h1>Group Management</h1>
+                    <p class="header-subtitle">Manage groups and their members</p>
+                </div>
+                <div class="header-actions">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle">
+                            <span class="avatar">A</span>
+                            <span class="user-name">Admin User</span>
+                            <span class="dropdown-icon">▼</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">My Profile</a></li>
+                            <li><a href="#">Settings</a></li>
+                            <li><a href="../signin/index.html">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Group Management Content -->
+            <div class="content-container" id="group-management">
+                <div class="content-header">
+                    <div class="content-header-actions">
+                        <button class="btn btn-primary" id="add-group-btn">
+                            <span class="btn-icon">➕</span>
+                            Add New Group
+                        </button>
+                    </div>
+                    <div class="content-header-filters">
+                        <div class="search-box">
+                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div class="filter-dropdown">
+                            <select class="form-control" id="type-filter">
+                                <option value="all">All Groups</option>
+                                <option value="system">System Groups</option>
+                                <option value="custom">Custom Groups</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="card">
+                        <div class="card-body p-0" id="group-table-container">
+                            <p class="placeholder-text">Loading group data...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Include Modal Components -->
+    <div id="modal-container">
+        <!-- Group Users Management Modal -->
+        <div class="modal" id="groupUsersModal">
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="groupUsersModalTitle">Manage Group Users</h3>
+                    <button class="modal-close" onclick="closeGroupUsersModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="group-info">
+                        <div class="group-info-item">
+                            <span class="info-label">Group:</span>
+                            <span class="info-value" id="groupUsersModalName">group-name</span>
+                        </div>
+                        <div class="group-info-item">
+                            <span class="info-label">Description:</span>
+                            <span class="info-value" id="groupUsersModalDescription">Group description</span>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h4 class="section-title">Available Users</h4>
+                        <div class="search-box-modal">
+                            <input type="text" id="groupUsersSearch" placeholder="Search users..." class="search-input">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div class="users-grid" id="groupUsersCheckboxes">
+                            <!-- Users will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeGroupUsersModal()">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveGroupUsers()">
+                        <span class="btn-icon">💾</span>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-auth.js"></script>
+    <script src="js/admin-middleware.js"></script>
+    <script src="js/group-management-enhanced.js"></script>
+    
+    <script>
+        // Initialize AdminAPI as global instance
+        window.AdminAPI = new AdminAPI();
+    </script>
+</body>
+</html>
